@@ -5,11 +5,17 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-
-import '../../../../core/services/ai_service.dart';
 import '../../../../core/services/database_service.dart';
 import '../../../subscriptions/domain/subscription_model.dart';
 import '../../../transactions/domain/transaction_model.dart';
+
+// ---------------------------------------------------------------------------
+// User Budget
+// ---------------------------------------------------------------------------
+
+/// The user's monthly budget. Defaults to 20,000 TL.
+/// This will be made user-editable in a future phase.
+final userBudgetProvider = StateProvider<double>((ref) => 20000.0);
 
 // ---------------------------------------------------------------------------
 // Transactions
@@ -114,58 +120,3 @@ final currentMonthExpenseByCategoryProvider =
   return map;
 });
 
-// ---------------------------------------------------------------------------
-// AI Savings Tips
-// ---------------------------------------------------------------------------
-
-/// Fetches personalised savings tips from Gemini based on recent transactions.
-final savingsTipsProvider = FutureProvider<List<String>>((ref) async {
-  final txns = ref.watch(transactionsProvider).valueOrNull ?? [];
-  if (txns.isEmpty) {
-    return ['Add your first transaction to receive personalised tips!'];
-  }
-  final aiService = ref.read(aiServiceProvider);
-  return aiService.getSavingsTips(txns.take(20).toList());
-});
-
-// ---------------------------------------------------------------------------
-// FluxAI Savings Coach (Manual Refresh Only + 30-min Cooldown)
-// ---------------------------------------------------------------------------
-
-/// Timestamp of the last successful AI fetch.
-DateTime? _lastAiFetchTime;
-
-/// Cached AI advice to avoid redundant API calls.
-List<String>? _cachedAiAdvice;
-
-/// Fetches witty, Turkish-language savings advice from the FluxAI persona.
-/// This provider deliberately uses `ref.read` (NOT `ref.watch`) so it does
-/// NOT auto-refresh when transactions change. It only fires when the user
-/// explicitly calls `ref.invalidate(fluxAiAdviceProvider)`.
-///
-/// Additionally, results are cached for 30 minutes. If the user clicks
-/// refresh within the cooldown window, the cached result is returned.
-final fluxAiAdviceProvider = FutureProvider<List<String>>((ref) async {
-  // Check 30-minute cooldown
-  final now = DateTime.now();
-  if (_lastAiFetchTime != null &&
-      _cachedAiAdvice != null &&
-      now.difference(_lastAiFetchTime!).inMinutes < 30) {
-    return _cachedAiAdvice!;
-  }
-
-  // Use ref.read to avoid reactive dependency on transactions
-  final txns = ref.read(transactionsProvider).valueOrNull ?? [];
-  if (txns.isEmpty) {
-    return ['İlk harcamanı ekle, FluxAI seni tanısın! 🚀'];
-  }
-
-  final aiService = ref.read(aiServiceProvider);
-  final advice = await aiService.getSavingsAdvice(txns.take(20).toList());
-
-  // Cache the result and timestamp
-  _lastAiFetchTime = now;
-  _cachedAiAdvice = advice;
-
-  return advice;
-});

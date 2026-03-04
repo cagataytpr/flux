@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 import '../../features/transactions/domain/transaction_model.dart';
+import '../constants/ai_prompts.dart';
 
 // ---------------------------------------------------------------------------
 // Provider
@@ -33,24 +34,17 @@ class AiService {
   static const String _model = 'gemini-2.5-flash';
 
   AiService() : _apiKey = dotenv.env['GEMINI_API_KEY'] ?? '' {
-    // ignore: avoid_print
-    print('[AiService] API key ${_apiKey.isEmpty ? "MISSING" : "loaded"}');
   }
 
   /// Helper to send a POST request strictly to the v1 API route.
   Future<String?> _postToGemini(Map<String, dynamic> requestBody) async {
     if (_apiKey.isEmpty) {
-      // ignore: avoid_print
-      print('[AiService] Error: GEMINI_API_KEY is empty');
       return null;
     }
 
     final url = Uri.parse(
       'https://generativelanguage.googleapis.com/v1/models/$_model:generateContent?key=$_apiKey',
     );
-
-    // ignore: avoid_print
-    print('[AiService] 🚀 Launching request with Gemini 2.5 Flash...');
 
     try {
       final response = await http.post(
@@ -59,22 +53,14 @@ class AiService {
         body: jsonEncode(requestBody),
       );
 
-      // Clean Log: Only print status code
-      // ignore: avoid_print
-      print('[AiService] HTTP Status: ${response.statusCode}');
-
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         final text = json['candidates']?[0]?['content']?['parts']?[0]?['text'] as String?;
         return text;
       } else {
-        // ignore: avoid_print
-        print('[AiService] API Error: ${response.body}');
         throw Exception('API Error: ${response.statusCode}');
       }
     } catch (e) {
-      // ignore: avoid_print
-      print('[AiService] Request Failed: $e');
       rethrow;
     }
   }
@@ -156,8 +142,6 @@ class AiService {
 
       return parsed;
     } catch (e) {
-      // ignore: avoid_print
-      print('analyzeReceipt error: $e');
       rethrow;
     }
   }
@@ -201,11 +185,7 @@ class AiService {
             '(${t.category.name})';
       }).join('\n');
 
-      final prompt =
-          'You are a personal finance advisor. Based on the following '
-          'recent transactions, provide exactly 3 concise, actionable savings '
-          'suggestions. Return ONLY a JSON array of 3 strings.\n\n'
-          'Transactions:\n$summary';
+      final prompt = buildSavingsTipsPrompt(summary);
 
       final requestBody = {
         'contents': [
@@ -255,23 +235,7 @@ class AiService {
             '(${t.category.name})';
       }).join('\n');
 
-      final prompt =
-          'You are FluxAI, a "Big Brother" (Abi/Abla) Turkish financial advisor. '
-          'Your tone is compassionate and realistic. You understand that the cost of living in March 2026 is high, but your goal is to help the user save even the smallest amounts. '
-          'Never minimize money. Treat amounts seriously. E.g., "7,000 TL bu devirde kolay kazanılmıyor, harcarken iki kere düşünmek lazım." '
-          'You are supportive but strict about wasting money on nonsense. '
-          'ROAST RULES:\n'
-          '- NEVER roast essential spending (rent, basic groceries, utilities).\n'
-          '- IF an expense is under 500 TL: Ignore it.\n'
-          '- IF a "fun/luxury" expense (coffee, games, luxury clothes) is over 2,000 TL: Give a friendly but firm "Abi/Abla" warning.\n'
-          '- IF an expense is 10,000 TL or more: Ask if they won the lottery or if they are in trouble.\n\n'
-          'Analyze these expenses and give advice in Turkish. '
-          'Return ONLY a JSON array of 3 strings based on this structure:\n'
-          'String 1: A relatable "Abi/Abla" response about non-essential spending (following the rules above).\n'
-          'String 2: A compassionate but serious check on their monthly budget status.\n'
-          'String 3: One specific, actionable tip to save money.\n\n'
-          'Use emojis.\n'
-          'Harcamalar:\n$summary';
+      final prompt = buildFluxAiAdvicePrompt(summary);
 
       final requestBody = {
         'contents': [
@@ -302,6 +266,31 @@ class AiService {
       return [];
     } catch (e) {
       return [];
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Category Roast
+  // -------------------------------------------------------------------------
+
+  Future<String> getCategoryRoast(String categorySummary) async {
+    try {
+      final prompt = buildCategoryRoastPrompt(categorySummary);
+
+      final requestBody = {
+        'contents': [
+          {
+            'parts': [
+              {'text': prompt}
+            ]
+          }
+        ]
+      };
+
+      final text = await _postToGemini(requestBody);
+      return text ?? 'FluxAI şu an mola veriyor ☕';
+    } catch (_) {
+      return 'FluxAI bağlantı kuramadı, tekrar dene! 🔄';
     }
   }
 }

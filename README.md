@@ -1,6 +1,31 @@
-# flux
+# Flux - AI Expense Tracker 💸✨
 
-A new Flutter project.
+Welcome to **Flux**, the next-generation personal finance and expense tracking application. Powered by Flutter, Riverpod, Isar Offline Database, and Gemini AI.
+
+Flux is designed to track your spending effortlessly and roast your bad financial decisions playfully!
+
+## 🚀 Key Features
+* **Feature-First Clean Architecture**: Highly scalable, modular codebase.
+* **Offline-First Isar Database**: Lightning fast local storage.
+* **FluxAI Savings Coach**: Witty, personalized AI roasts and insights based on your spending habits using Gemini 2.5 Flash.
+* **Advanced Analytics**: Interactive BarCharts (`fl_chart`) and ranked spending lists.
+* **Smart Subscriptions**: Automatically calculates your monthly burn rate and predicts upcoming bills.
+* **Proactive Notifications**: Scheduled check-ins, budget threshold alerts, and bill reminders.
+* **Cross-Platform Premium Design**: Custom Dark/Neon Green/Purple theme, smooth animations, and a polished user experience.
+
+## 🛠️ Architecture
+Built according to the Feature-First Clean Architecture pattern, heavily emphasizing single-responsibility and unidirectional data flows.
+
+## 📸 Running the App
+Make sure to create a `.env` file at the root of the project with a valid `GEMINI_API_KEY`:
+```
+GEMINI_API_KEY=your_api_key_here
+```
+Then simply run:
+```bash
+flutter pub get
+flutter run
+```
 
 ## Getting Started
 

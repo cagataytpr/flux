@@ -79,6 +79,11 @@ class _HomePageState extends ConsumerState<HomePage> {
             label: 'Dashboard',
           ),
           NavigationDestination(
+            icon: Icon(Icons.analytics_outlined),
+            selectedIcon: Icon(Icons.analytics_rounded),
+            label: 'Stats',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.history_outlined),
             selectedIcon: Icon(Icons.history_rounded),
             label: 'History',

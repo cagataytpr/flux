@@ -11,8 +11,8 @@ class BudgetProgressCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     
-    // Mock budget for now
-    const double monthlyBudget = 20000.0;
+    // Dynamic budget from provider
+    final double monthlyBudget = ref.watch(userBudgetProvider);
     final totalSpent = ref.watch(currentMonthExpensesProvider);
 
     // Handle division by zero

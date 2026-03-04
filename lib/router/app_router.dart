@@ -8,12 +8,16 @@ import 'package:go_router/go_router.dart';
 
 import '../features/dashboard/presentation/pages/dashboard_screen.dart';
 import '../features/home/presentation/pages/home_page.dart';
+import '../features/home/presentation/pages/splash_screen.dart';
+import '../features/statistics/presentation/pages/statistics_screen.dart';
 import '../features/subscriptions/presentation/pages/subscriptions_screen.dart';
 import '../features/transactions/presentation/pages/history_screen.dart';
 
 /// Route path constants.
 abstract final class RoutePaths {
+  static const String splash = '/splash';
   static const String dashboard = '/';
+  static const String statistics = '/statistics';
   static const String history = '/history';
   static const String subscriptions = '/subscriptions';
   static const String settings = '/settings';
@@ -21,7 +25,9 @@ abstract final class RoutePaths {
 
 /// Route name constants.
 abstract final class RouteNames {
+  static const String splash = 'splash';
   static const String dashboard = 'dashboard';
+  static const String statistics = 'statistics';
   static const String history = 'history';
   static const String subscriptions = 'subscriptions';
   static const String settings = 'settings';
@@ -29,15 +35,22 @@ abstract final class RouteNames {
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _dashboardNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'dashboard');
+final _statisticsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'statistics');
 final _historyNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'history');
 final _settingsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'settings');
 
 /// Application router configuration.
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: RoutePaths.dashboard,
+  initialLocation: RoutePaths.splash,
   debugLogDiagnostics: true,
   routes: <RouteBase>[
+    // Animated Splash Screen
+    GoRoute(
+      path: RoutePaths.splash,
+      name: RouteNames.splash,
+      builder: (context, state) => const SplashScreen(),
+    ),
     // Main navigation shell with bottom tab bar
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
@@ -68,7 +81,21 @@ final GoRouter appRouter = GoRouter(
             ),
           ],
         ),
-        // Tab 1: History Branch
+        // Tab 1: Statistics Branch
+        StatefulShellBranch(
+          navigatorKey: _statisticsNavigatorKey,
+          routes: [
+            GoRoute(
+              path: RoutePaths.statistics,
+              name: RouteNames.statistics,
+              pageBuilder: (context, state) => _buildPage(
+                state: state,
+                child: const StatisticsScreen(),
+              ),
+            ),
+          ],
+        ),
+        // Tab 2: History Branch
         StatefulShellBranch(
           navigatorKey: _historyNavigatorKey,
           routes: [
