@@ -28,6 +28,12 @@ class Subscription {
   /// E.g., 'Streaming', 'Rent', 'Software', 'Utilities'.
   late String category;
 
+  String type = 'Subscription'; // e.g., 'Subscription', 'Utility Bill', 'Credit Card'
+
+  String currency = 'TRY';
+
+  DateTime? lastPaidDate;
+
   Subscription();
 
   /// Convenience factory for creating a [Subscription] with all fields.
@@ -38,6 +44,9 @@ class Subscription {
     required int reminderDays,
     required SubscriptionCycle cycle,
     required String category,
+    String type = 'Subscription',
+    String currency = 'TRY',
+    DateTime? lastPaidDate,
   }) {
     return Subscription()
       ..name = name
@@ -45,6 +54,9 @@ class Subscription {
       ..nextBillingDate = nextBillingDate
       ..reminderDays = reminderDays
       ..cycle = cycle
-      ..category = category;
+      ..category = category
+      ..type = type
+      ..currency = currency
+      ..lastPaidDate = lastPaidDate;
   }
 }

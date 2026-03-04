@@ -7,9 +7,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../features/goals/domain/goal_model.dart';
 import '../../features/subscriptions/domain/subscription_model.dart';
 import '../../features/transactions/domain/transaction_model.dart';
 import '../constants/app_constants.dart';
+import '../models/exchange_rate_model.dart';
+import '../models/settings_model.dart';
 
 /// Provider that initialises and exposes the [Isar] instance.
 ///
@@ -28,7 +31,13 @@ final isarProvider = Provider<Isar>((ref) {
 Future<Isar> initIsar() async {
   final dir = await getApplicationDocumentsDirectory();
   return Isar.openSync(
-    [TransactionSchema, SubscriptionSchema],
+    [
+      TransactionSchema,
+      SubscriptionSchema,
+      GoalSchema,
+      SettingsSchema,
+      ExchangeRateModelSchema,
+    ],
     directory: dir.path,
     name: AppConstants.isarDbName,
   );

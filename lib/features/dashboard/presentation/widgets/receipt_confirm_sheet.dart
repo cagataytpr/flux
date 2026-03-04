@@ -5,8 +5,11 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/utils/currency_ext.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../subscriptions/domain/subscription_model.dart';
 import '../../../transactions/domain/transaction_model.dart';
 
@@ -68,16 +71,16 @@ bool _looksLikeSubscription(String title) {
 
 /// Displays the AI-parsed receipt data and returns a [ReceiptSaveResult]
 /// when the user taps **Save**, or `null` if dismissed.
-class ReceiptConfirmSheet extends StatefulWidget {
+class ReceiptConfirmSheet extends ConsumerStatefulWidget {
   const ReceiptConfirmSheet({super.key, required this.data});
 
   final Map<String, dynamic> data;
 
   @override
-  State<ReceiptConfirmSheet> createState() => _ReceiptConfirmSheetState();
+  ConsumerState<ReceiptConfirmSheet> createState() => _ReceiptConfirmSheetState();
 }
 
-class _ReceiptConfirmSheetState extends State<ReceiptConfirmSheet> {
+class _ReceiptConfirmSheetState extends ConsumerState<ReceiptConfirmSheet> {
   late String _title;
   late double _amount;
   late DateTime _date;
@@ -184,6 +187,9 @@ class _ReceiptConfirmSheetState extends State<ReceiptConfirmSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    
+    final settingsStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final sym = settingsStr.currencySymbol;
     final dateStr = DateFormat.yMMMd().format(_date);
     final catLabel =
         _category.name[0].toUpperCase() + _category.name.substring(1);
@@ -261,7 +267,7 @@ class _ReceiptConfirmSheetState extends State<ReceiptConfirmSheet> {
               _DataRow(
                   icon: Icons.attach_money_rounded,
                   label: 'Amount',
-                  value: '₺${_amount.toStringAsFixed(2)}',
+                  value: '$sym${_amount.toStringAsFixed(2)}',
                   theme: theme,
                   valueColor: theme.colorScheme.error),
               const SizedBox(height: 14),

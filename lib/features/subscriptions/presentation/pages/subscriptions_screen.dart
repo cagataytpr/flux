@@ -7,6 +7,9 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/currency_ext.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
+
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../domain/subscription_model.dart';
 
@@ -20,6 +23,8 @@ class SubscriptionsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final subsAsync = ref.watch(subscriptionsProvider);
+    final settingsStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final sym = settingsStr.currencySymbol;
 
     return Scaffold(
       appBar: AppBar(
@@ -80,7 +85,7 @@ class SubscriptionsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '₺${totalMonthly.toStringAsFixed(2)}',
+                      '$sym${totalMonthly.toStringAsFixed(2)}',
                       style: theme.textTheme.headlineLarge?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
@@ -102,7 +107,7 @@ class SubscriptionsScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   itemCount: subs.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (_, i) => _SubscriptionTile(sub: subs[i]),
+                  itemBuilder: (_, i) => _SubscriptionTile(sub: subs[i], sym: sym),
                 ),
               ),
             ],
@@ -167,8 +172,9 @@ class _EmptyState extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _SubscriptionTile extends StatelessWidget {
-  const _SubscriptionTile({required this.sub});
+  const _SubscriptionTile({required this.sub, required this.sym});
   final Subscription sub;
+  final String sym;
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +238,7 @@ class _SubscriptionTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 2),
                 Text(
-                  '$cycleLabel · ₺${sub.amount.toStringAsFixed(2)}',
+                  '$cycleLabel · $sym${sub.amount.toStringAsFixed(2)}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color:
                         theme.colorScheme.onSurface.withValues(alpha:  0.5),

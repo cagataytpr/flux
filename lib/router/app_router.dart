@@ -7,30 +7,37 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/dashboard/presentation/pages/dashboard_screen.dart';
+import '../features/goals/presentation/pages/goals_screen.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/home/presentation/pages/splash_screen.dart';
+import '../features/settings/presentation/pages/settings_screen.dart';
 import '../features/statistics/presentation/pages/statistics_screen.dart';
 import '../features/subscriptions/presentation/pages/subscriptions_screen.dart';
 import '../features/transactions/presentation/pages/history_screen.dart';
+import '../features/auth/presentation/pages/auth_check_screen.dart';
 
 /// Route path constants.
 abstract final class RoutePaths {
   static const String splash = '/splash';
+  static const String auth = '/auth';
   static const String dashboard = '/';
   static const String statistics = '/statistics';
   static const String history = '/history';
   static const String subscriptions = '/subscriptions';
   static const String settings = '/settings';
+  static const String goals = '/goals';
 }
 
 /// Route name constants.
 abstract final class RouteNames {
   static const String splash = 'splash';
+  static const String auth = 'auth';
   static const String dashboard = 'dashboard';
   static const String statistics = 'statistics';
   static const String history = 'history';
   static const String subscriptions = 'subscriptions';
   static const String settings = 'settings';
+  static const String goals = 'goals';
 }
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -50,6 +57,15 @@ final GoRouter appRouter = GoRouter(
       path: RoutePaths.splash,
       name: RouteNames.splash,
       builder: (context, state) => const SplashScreen(),
+    ),
+    // Auth Check Screen
+    GoRoute(
+      path: RoutePaths.auth,
+      name: RouteNames.auth,
+      pageBuilder: (context, state) => _buildPage(
+        state: state,
+        child: const AuthCheckScreen(),
+      ),
     ),
     // Main navigation shell with bottom tab bar
     StatefulShellRoute.indexedStack(
@@ -75,6 +91,14 @@ final GoRouter appRouter = GoRouter(
                   pageBuilder: (context, state) => _buildPage(
                     state: state,
                     child: const SubscriptionsScreen(),
+                  ),
+                ),
+                GoRoute(
+                  path: 'goals',
+                  name: RouteNames.goals,
+                  pageBuilder: (context, state) => _buildPage(
+                    state: state,
+                    child: const GoalsScreen(),
                   ),
                 ),
               ],
@@ -118,7 +142,7 @@ final GoRouter appRouter = GoRouter(
               name: RouteNames.settings,
               pageBuilder: (context, state) => _buildPage(
                 state: state,
-                child: const Scaffold(body: Center(child: Text('Settings WIP'))),
+                child: const SettingsScreen(),
               ),
             ),
           ],

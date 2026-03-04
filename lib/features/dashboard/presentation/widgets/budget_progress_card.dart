@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/currency_ext.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
+
 import '../providers/dashboard_providers.dart';
 
 /// A card that displays the user's spending against a monthly budget limit.
@@ -10,6 +13,8 @@ class BudgetProgressCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final settingsStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final sym = settingsStr.currencySymbol;
     
     // Dynamic budget from provider
     final double monthlyBudget = ref.watch(userBudgetProvider);
@@ -103,7 +108,7 @@ class BudgetProgressCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '₺${totalSpent.toStringAsFixed(2)}',
+                    '$sym${totalSpent.toStringAsFixed(2)}',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -121,7 +126,7 @@ class BudgetProgressCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '₺${remaining.toStringAsFixed(2)}',
+                    '$sym${remaining.toStringAsFixed(2)}',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),

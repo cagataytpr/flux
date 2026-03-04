@@ -36,6 +36,20 @@ class Transaction {
 
   late bool isSubscription;
 
+  String currency = 'TRY';
+
+  double? exchangeRate;
+
+  String? paymentMethod; // e.g., 'Cash', 'Credit Card'
+
+  int? currentInstallment;
+
+  int? totalInstallments;
+
+  int? linkedSubscriptionId; // To link this expense to a recurring bill
+
+  int? linkedGoalId; // To link this transaction to a savings goal transfer
+
   Transaction();
 
   /// Convenience factory for creating a [Transaction] with all fields.
@@ -48,6 +62,13 @@ class Transaction {
     String? receiptImagePath,
     bool isAiGenerated = false,
     bool isSubscription = false,
+    String currency = 'TRY',
+    double? exchangeRate,
+    String? paymentMethod,
+    int? currentInstallment,
+    int? totalInstallments,
+    int? linkedSubscriptionId,
+    int? linkedGoalId,
   }) {
     return Transaction()
       ..title = title
@@ -57,6 +78,13 @@ class Transaction {
       ..isIncome = isIncome
       ..receiptImagePath = receiptImagePath
       ..isAiGenerated = isAiGenerated
-      ..isSubscription = isSubscription;
+      ..isSubscription = isSubscription
+      ..currency = currency
+      ..exchangeRate = exchangeRate
+      ..paymentMethod = paymentMethod
+      ..currentInstallment = currentInstallment
+      ..totalInstallments = totalInstallments
+      ..linkedSubscriptionId = linkedSubscriptionId
+      ..linkedGoalId = linkedGoalId;
   }
 }

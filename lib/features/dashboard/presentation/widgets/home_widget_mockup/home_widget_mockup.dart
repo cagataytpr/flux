@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../../core/utils/currency_ext.dart';
+import '../../../../settings/presentation/providers/settings_provider.dart';
+import '../../providers/dashboard_providers.dart';
 
 /// This is a structural mockup demonstrating how the iOS/Android Home Widget
 /// will look before integrating the native swift/kotlin `home_widget` package
 /// channels.
-class HomeWidgetMockup extends StatelessWidget {
+class HomeWidgetMockup extends ConsumerWidget {
   const HomeWidgetMockup({
     required this.totalSpent,
     required this.monthlyBudget,
@@ -14,9 +19,15 @@ class HomeWidgetMockup extends StatelessWidget {
   final double monthlyBudget;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final totalSpentFromProvider = ref.watch(totalExpensesProvider);
+    
+    final settingsStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final sym = settingsStr.currencySymbol;
+
     // 2x2 or 4x2 representation
-    final progress = (monthlyBudget > 0) ? (totalSpent / monthlyBudget).clamp(0.0, 1.0) : 0.0;
+    final progress = (monthlyBudget > 0) ? (totalSpentFromProvider / monthlyBudget).clamp(0.0, 1.0) : 0.0;
     
     // Determine bar color
     Color barColor;
@@ -77,7 +88,7 @@ class HomeWidgetMockup extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '₺${totalSpent.toStringAsFixed(0)}',
+            '$sym${totalSpent.toStringAsFixed(0)}',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 22,

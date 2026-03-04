@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../router/app_router.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
 
 /// Animated Splash Screen for Flux App.
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _opacityAnimation;
@@ -46,7 +49,12 @@ class _SplashScreenState extends State<SplashScreen>
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         if (mounted) {
-          context.go(RoutePaths.dashboard);
+          final settings = ref.read(settingsProvider).valueOrNull;
+          if (settings?.biometricEnabled == true) {
+            context.go(RoutePaths.auth);
+          } else {
+            context.go(RoutePaths.dashboard);
+          }
         }
       }
     });

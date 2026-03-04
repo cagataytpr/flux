@@ -5,7 +5,10 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../core/utils/currency_ext.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
 import '../providers/dashboard_providers.dart';
 
 /// Displays the closest upcoming subscription bill with due date and amount.
@@ -15,9 +18,11 @@ class UpcomingBillIndicator extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final subsAsync = ref.watch(subscriptionsProvider);
+    final settingsStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final sym = settingsStr.currencySymbol;
+    final subscriptionsAsync = ref.watch(subscriptionsProvider);
 
-    return subsAsync.when(
+    return subscriptionsAsync.when(
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
       data: (subs) {
@@ -107,7 +112,7 @@ class UpcomingBillIndicator extends ConsumerWidget {
                 ),
               ),
               Text(
-                '₺${nextSub.amount.toStringAsFixed(0)}',
+                '$sym${nextSub.amount.toStringAsFixed(0)}',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: theme.colorScheme.primary,

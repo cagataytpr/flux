@@ -6,13 +6,16 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:workmanager/workmanager.dart';
 
 import 'core/constants/app_constants.dart';
 import 'core/services/database_service.dart';
+import 'core/services/exchange_rate_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
+import 'features/settings/presentation/providers/settings_provider.dart';
 import 'router/app_router.dart';
 
 Future<void> main() async {
@@ -23,6 +26,10 @@ Future<void> main() async {
 
   // Initialize Isar database with all schemas.
   final isar = await initIsar();
+
+  // Sync exchange rates
+  final exchangeRateService = ExchangeRateService(isar);
+  await exchangeRateService.syncRatesIfNeeded();
 
   // Initialize Notification Service
   final notificationService = NotificationService();
@@ -42,6 +49,7 @@ Future<void> main() async {
       overrides: [
         isarProvider.overrideWithValue(isar),
         notificationServiceProvider.overrideWithValue(notificationService),
+        exchangeRateServiceProvider.overrideWithValue(exchangeRateService),
       ],
       child: const FluxApp(),
     ),
@@ -49,15 +57,52 @@ Future<void> main() async {
 }
 
 /// Root application widget.
-class FluxApp extends StatelessWidget {
+class FluxApp extends ConsumerWidget {
   const FluxApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settingsAsync = ref.watch(settingsProvider);
+    final themeModeStr = settingsAsync.valueOrNull?.themeMode ?? 'system';
+    final languageStr = settingsAsync.valueOrNull?.language ?? 'tr_TR';
+    
+    final langParts = languageStr.split('_');
+    final locale = langParts.length == 2 
+        ? Locale(langParts[0], langParts[1]) 
+        : Locale(langParts[0]);
+    
+    ThemeMode themeMode;
+    switch (themeModeStr) {
+      case 'light':
+        themeMode = ThemeMode.light;
+        break;
+      case 'dark':
+        themeMode = ThemeMode.dark;
+        break;
+      case 'system':
+      default:
+        themeMode = ThemeMode.system;
+        break;
+    }
+
     return MaterialApp.router(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      locale: locale,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', 'US'),
+        Locale('tr', 'TR'),
+      ],
+      themeMode: themeMode,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeAnimationDuration: const Duration(milliseconds: 500),
+      themeAnimationCurve: Curves.easeInOut,
       routerConfig: appRouter,
     );
   }

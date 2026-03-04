@@ -33,8 +33,7 @@ class AiService {
 
   static const String _model = 'gemini-2.5-flash';
 
-  AiService() : _apiKey = dotenv.env['GEMINI_API_KEY'] ?? '' {
-  }
+  AiService() : _apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
 
   /// Helper to send a POST request strictly to the v1 API route.
   Future<String?> _postToGemini(Map<String, dynamic> requestBody) async {

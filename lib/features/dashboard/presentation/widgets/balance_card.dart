@@ -5,6 +5,11 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+
+import '../../../../core/utils/currency_ext.dart';
+import '../../../../core/services/exchange_rate_service.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
 
 import '../providers/dashboard_providers.dart';
 
@@ -19,6 +24,16 @@ class BalanceCard extends ConsumerWidget {
     final income = ref.watch(totalIncomeProvider);
     final expenses = ref.watch(totalExpensesProvider);
     final isPositive = balance >= 0;
+
+    final settingsStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final sym = settingsStr.currencySymbol;
+    final ex = ref.watch(exchangeRateServiceProvider);
+
+    final cBalance = ex.convertToSelected(balance, settingsStr);
+    final cIncome = ex.convertToSelected(income, settingsStr);
+    final cExpenses = ex.convertToSelected(expenses, settingsStr);
+
+    final fmt = NumberFormat('#,##0.00', 'tr_TR');
 
     return Container(
       width: double.infinity,
@@ -84,7 +99,7 @@ class BalanceCard extends ConsumerWidget {
                   alignment: Alignment.centerLeft,
                   fit: BoxFit.scaleDown,
                   child: Text(
-                    '${isPositive ? '+' : ''}₺${balance.toStringAsFixed(2)}',
+                    '${isPositive ? '+' : ''}$sym${fmt.format(cBalance)}',
                     style: theme.textTheme.displaySmall?.copyWith(
                       fontWeight: FontWeight.w800,
                       letterSpacing: -1,
@@ -107,14 +122,14 @@ class BalanceCard extends ConsumerWidget {
                 icon: Icons.arrow_downward_rounded,
                 iconColor: const Color(0xFF00E5A0),
                 label: 'Income',
-                value: '₺${income.toStringAsFixed(2)}',
+                value: '$sym${fmt.format(cIncome)}',
               ),
               const SizedBox(width: 24),
               _MiniStat(
                 icon: Icons.arrow_upward_rounded,
                 iconColor: theme.colorScheme.error,
                 label: 'Expenses',
-                value: '₺${expenses.toStringAsFixed(2)}',
+                value: '$sym${fmt.format(cExpenses)}',
               ),
             ],
           ),
@@ -128,7 +143,7 @@ class BalanceCard extends ConsumerWidget {
 // Mini Stat chip used inside the card
 // ---------------------------------------------------------------------------
 
-class _MiniStat extends StatelessWidget {
+class _MiniStat extends ConsumerWidget {
   const _MiniStat({
     required this.icon,
     required this.iconColor,
@@ -142,7 +157,7 @@ class _MiniStat extends StatelessWidget {
   final String value;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Row(

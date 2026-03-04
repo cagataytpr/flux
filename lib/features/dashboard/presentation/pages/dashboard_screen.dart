@@ -41,10 +41,16 @@ class DashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Flux'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.receipt_outlined),
+          IconButton.filledTonal(
+            onPressed: () => context.push(RoutePaths.dashboard + RouteNames.goals),
+            icon: const Icon(Icons.savings_rounded),
+            tooltip: 'My Goals',
+          ),
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
+            onPressed: () => context.push(RoutePaths.dashboard + RouteNames.subscriptions),
+            icon: const Icon(Icons.receipt_long_rounded),
             tooltip: 'Subscriptions',
-            onPressed: () => context.push(RoutePaths.subscriptions),
           ),
           IconButton(
             icon: const Icon(Icons.notifications_none_rounded),

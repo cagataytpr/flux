@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/services/database_service.dart';
+import '../../../../core/utils/currency_ext.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../transactions/domain/transaction_model.dart';
 import '../../domain/subscription_model.dart';
 
@@ -135,6 +137,8 @@ class _AddSubscriptionFormState extends State<_AddSubscriptionForm> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final settingsStr = widget.ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final sym = settingsStr.currencySymbol;
 
     return Container(
       decoration: BoxDecoration(
@@ -195,10 +199,10 @@ class _AddSubscriptionFormState extends State<_AddSubscriptionForm> {
                 // Amount Input
                 TextFormField(
                   controller: _amountController,
-                  decoration: const InputDecoration(
-                    labelText: 'Monthly Cost (₺)',
+                  decoration: InputDecoration(
+                    labelText: 'Monthly Cost ($sym)',
                     hintText: 'e.g. 150.50',
-                    prefixIcon: Icon(Icons.attach_money),
+                    prefixIcon: const Icon(Icons.attach_money),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   validator: (v) {

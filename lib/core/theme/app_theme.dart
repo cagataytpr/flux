@@ -40,6 +40,19 @@ abstract final class AppTheme {
 
   // ─── Theme Data ────────────────────────────────────────────────
 
+  /// The light [ThemeData] for the application.
+  static ThemeData get lightTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: _primaryColor,
+        brightness: Brightness.light,
+      ),
+      fontFamily: 'Inter',
+    );
+  }
+
   /// The main dark [ThemeData] for the application.
   static ThemeData get darkTheme {
     return ThemeData(

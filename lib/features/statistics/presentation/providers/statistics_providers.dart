@@ -5,9 +5,9 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/ai_service.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../transactions/domain/transaction_model.dart';
-import '../../../../core/services/ai_service.dart';
 
 // ---------------------------------------------------------------------------
 // Category Spending Data

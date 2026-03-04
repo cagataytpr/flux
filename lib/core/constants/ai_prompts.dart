@@ -2,6 +2,7 @@
 ///
 /// Centralized prompt strings for the Gemini API integration.
 /// ai_service.dart should import these instead of inlining prompts.
+library;
 
 /// System prompt for the general savings tip advisor (English).
 String buildSavingsTipsPrompt(String transactionSummary) {

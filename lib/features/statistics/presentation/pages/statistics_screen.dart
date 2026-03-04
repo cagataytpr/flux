@@ -8,6 +8,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/currency_ext.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
+
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../transactions/domain/transaction_model.dart';
 import '../providers/statistics_providers.dart';
@@ -68,6 +71,8 @@ class StatisticsScreen extends ConsumerWidget {
     final spending = ref.watch(categorySpendingProvider);
     final totalSpent = ref.watch(currentMonthExpensesProvider);
     final budget = ref.watch(userBudgetProvider);
+    final settingsStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final sym = settingsStr.currencySymbol;
 
     return Scaffold(
       appBar: AppBar(
@@ -85,6 +90,7 @@ class StatisticsScreen extends ConsumerWidget {
                     totalSpent: totalSpent,
                     budget: budget,
                     theme: theme,
+                    sym: sym,
                   ),
 
                   const SizedBox(height: 16),
@@ -102,7 +108,7 @@ class StatisticsScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _SpendingBarChart(spending: spending, theme: theme),
+                  _SpendingBarChart(spending: spending, theme: theme, sym: sym),
 
                   const SizedBox(height: 28),
 
@@ -120,6 +126,7 @@ class StatisticsScreen extends ConsumerWidget {
                       spending: entry.value,
                       budget: budget,
                       theme: theme,
+                      sym: sym,
                     ),
                   ),
 
@@ -161,11 +168,13 @@ class _SummaryHeader extends StatelessWidget {
     required this.totalSpent,
     required this.budget,
     required this.theme,
+    required this.sym,
   });
 
   final double totalSpent;
   final double budget;
   final ThemeData theme;
+  final String sym;
 
   @override
   Widget build(BuildContext context) {
@@ -214,7 +223,7 @@ class _SummaryHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '₺${totalSpent.toStringAsFixed(0)}',
+                      '$sym${totalSpent.toStringAsFixed(0)}',
                       style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.w900,
                         color: theme.colorScheme.primary,
@@ -236,7 +245,7 @@ class _SummaryHeader extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '₺${remaining.toStringAsFixed(0)}',
+                    '$sym${remaining.toStringAsFixed(0)}',
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w800,
                       color: remaining >= 0
@@ -270,10 +279,12 @@ class _SpendingBarChart extends StatelessWidget {
   const _SpendingBarChart({
     required this.spending,
     required this.theme,
+    required this.sym,
   });
 
   final List<CategorySpending> spending;
   final ThemeData theme;
+  final String sym;
 
   @override
   Widget build(BuildContext context) {
@@ -300,8 +311,8 @@ class _SpendingBarChart extends StatelessWidget {
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 final cat = spending[group.x.toInt()].category;
                 return BarTooltipItem(
-                  '${_categoryLabel(cat)}\n₺${rod.toY.toStringAsFixed(0)}',
-                  TextStyle(
+                  '${_categoryLabel(cat)}\n$sym${rod.toY.toStringAsFixed(0)}',
+                  const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
@@ -381,12 +392,14 @@ class _SpendingRankTile extends StatelessWidget {
     required this.spending,
     required this.budget,
     required this.theme,
+    required this.sym,
   });
 
   final int rank;
   final CategorySpending spending;
   final double budget;
   final ThemeData theme;
+  final String sym;
 
   @override
   Widget build(BuildContext context) {
@@ -472,7 +485,7 @@ class _SpendingRankTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '₺${spending.amount.toStringAsFixed(0)}',
+                '$sym${spending.amount.toStringAsFixed(0)}',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w800,
                 ),
@@ -525,9 +538,9 @@ class _FluxAiRoastCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.whatshot_rounded,
-                color: const Color(0xFFFF6B6B),
+                color: Color(0xFFFF6B6B),
                 size: 20,
               ),
               const SizedBox(width: 8),

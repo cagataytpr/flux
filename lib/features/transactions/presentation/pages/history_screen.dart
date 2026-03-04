@@ -5,11 +5,14 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-
 import 'package:flux/core/services/database_service.dart';
 import 'package:flux/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:flux/features/transactions/domain/transaction_model.dart';
+import 'package:intl/intl.dart';
+
+import '../../../../core/utils/currency_ext.dart';
+import '../../../../core/services/exchange_rate_service.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
 
 /// Provider for the currently active category filter
 final _historyCategoryFilterProvider = StateProvider<TransactionCategory?>((ref) => null);
@@ -40,6 +43,8 @@ class HistoryScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final txnsAsync = ref.watch(transactionsProvider);
     final activeCategory = ref.watch(_historyCategoryFilterProvider);
+    final settingsStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final sym = settingsStr.currencySymbol;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -47,7 +52,7 @@ class HistoryScreen extends ConsumerWidget {
         child: Column(
           children: [
             // Header: Title & Total Spent Card
-            _buildHeader(context, ref),
+            _buildHeader(context, ref, sym),
             
             // Filter Bar
             _buildFilterBar(context, ref, activeCategory),
@@ -95,7 +100,7 @@ class HistoryScreen extends ConsumerWidget {
                             await isar.transactions.delete(txn.id);
                           });
                         },
-                        child: _HistoryTile(transaction: txn),
+                        child: _HistoryTile(transaction: txn, sym: sym),
                       );
                     },
                   );
@@ -108,9 +113,14 @@ class HistoryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, WidgetRef ref) {
+  Widget _buildHeader(BuildContext context, WidgetRef ref, String sym) {
     final theme = Theme.of(context);
     final totalSpent = ref.watch(_thisMonthTotalProvider);
+    final currencyStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final ex = ref.watch(exchangeRateServiceProvider);
+    
+    final cTotalSpent = ex.convertToSelected(totalSpent, currencyStr);
+    final fmt = NumberFormat('#,##0.00', 'tr_TR');
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
@@ -153,7 +163,7 @@ class HistoryScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '₺${totalSpent.toStringAsFixed(2)}',
+                  '$sym${fmt.format(cTotalSpent)}',
                   style: theme.textTheme.displaySmall?.copyWith(
                     fontWeight: FontWeight.w900,
                     color: theme.colorScheme.primary,
@@ -229,15 +239,21 @@ class HistoryScreen extends ConsumerWidget {
   }
 }
 
-class _HistoryTile extends StatelessWidget {
-  const _HistoryTile({required this.transaction});
+class _HistoryTile extends ConsumerWidget {
+  const _HistoryTile({required this.transaction, required this.sym});
   
   final Transaction transaction;
+  final String sym;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final dateStr = DateFormat('MMM d, yyyy').format(transaction.date);
+    
+    final currencyStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final ex = ref.watch(exchangeRateServiceProvider);
+    final cAmount = ex.convertToSelected(transaction.amount, currencyStr);
+    final fmt = NumberFormat('#,##0.00', 'tr_TR');
     
     // Determine the icon source emoji
     String sourceEmoji = '✍️';
@@ -295,7 +311,7 @@ class _HistoryTile extends StatelessWidget {
             ),
           ),
           Text(
-            '${transaction.isIncome ? '+' : '-'}₺${transaction.amount.toStringAsFixed(2)}',
+            '${transaction.isIncome ? '+' : '-'}$sym${fmt.format(cAmount)}',
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w800,
               color: transaction.isIncome ? Colors.green : theme.colorScheme.onSurface,

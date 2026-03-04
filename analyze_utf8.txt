@@ -1,0 +1,12 @@
+﻿Analyzing lib...                                                
+
+   info - Dangling library doc comment - lib\core\constants\ai_prompts.dart:4:1 - dangling_library_doc_comments
+   info - Empty constructor bodies should be written using a ';' rather than '{}' - lib\core\services\ai_service.dart:36:62 - empty_constructor_bodies
+   info - Sort directive sections alphabetically - lib\core\services\database_service.dart:14:1 - directives_ordering
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\dashboard\presentation\widgets\home_widget_mockup\home_widget_mockup.dart:49:50 - deprecated_member_use
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor or activeTrackColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\features\settings\presentation\pages\settings_screen.dart:120:21 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance - lib\features\statistics\presentation\pages\statistics_screen.dart:304:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\statistics\presentation\pages\statistics_screen.dart:528:15 - prefer_const_constructors
+   info - Sort directive sections alphabetically - lib\features\statistics\presentation\providers\statistics_providers.dart:10:1 - directives_ordering
+   info - Sort directive sections alphabetically - lib\features\transactions\presentation\pages\history_screen.dart:10:1 - directives_ordering
+
