@@ -1,0 +1,59 @@
+name: flux
+description: "Flux - A modern Flutter application with Clean Architecture."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+
+  # Database (Offline-first)
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
+
+  # Navigation
+  go_router: ^14.8.1
+
+  # API
+  http: ^1.2.0
+
+  # Environment
+  flutter_dotenv: ^5.2.1
+
+  # Serialization & Code Generation Annotations
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
+
+  # Utilities
+  path_provider: ^2.1.5
+  intl: ^0.19.0
+
+  # Charts
+  fl_chart: ^0.70.2
+
+  # Image
+  image_picker: ^1.1.2
+  flutter_image_compress: ^2.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+  # Code Generation
+  build_runner: ^2.4.13
+  freezed: ^2.4.7
+  isar_generator: ^3.1.0+1
+  json_serializable: ^6.7.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - .env
