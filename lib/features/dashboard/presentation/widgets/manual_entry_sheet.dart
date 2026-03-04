@@ -9,7 +9,6 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/services/database_service.dart';
 import '../../../transactions/domain/transaction_model.dart';
-import '../providers/dashboard_providers.dart';
 
 /// Shows the manual entry form as a bottom sheet.
 void showManualEntrySheet(BuildContext context, WidgetRef ref) {
@@ -65,18 +64,13 @@ class _ManualEntryFormState extends State<_ManualEntryForm> {
       ..amount = amount
       ..date = _selectedDate
       ..category = _selectedCategory
-      ..isIncome = _isIncome;
+      ..isIncome = _isIncome
+      ..isAiGenerated = false
+      ..isSubscription = false ;
 
     await isar.writeTxn(() async {
       await isar.transactions.put(txn);
     });
-    
-    // Invalidate dashboard stats
-    widget.ref.invalidate(transactionsProvider);
-    widget.ref.invalidate(expenseByCategoryProvider);
-    widget.ref.invalidate(totalBalanceProvider);
-    widget.ref.invalidate(totalIncomeProvider);
-    widget.ref.invalidate(totalExpensesProvider);
 
     if (!mounted) return;
     Navigator.pop(context);

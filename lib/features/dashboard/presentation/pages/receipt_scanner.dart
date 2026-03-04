@@ -16,7 +16,6 @@ import '../../../../core/services/ai_service.dart';
 import '../../../../core/services/database_service.dart';
 import '../../../subscriptions/domain/subscription_model.dart';
 import '../../../transactions/domain/transaction_model.dart';
-import '../providers/dashboard_providers.dart';
 import '../widgets/receipt_confirm_sheet.dart';
 
 // ---------------------------------------------------------------------------
@@ -228,12 +227,6 @@ Future<void> _runScanFlow(
         await isar.subscriptions.put(result.subscription!);
       }
     });
-
-    // ── 7. Refresh ──────────────────────────────────────────────
-    ref.invalidate(transactionsProvider);
-    ref.invalidate(savingsTipsProvider);
-    ref.invalidate(fluxAiAdviceProvider);
-    ref.invalidate(subscriptionsProvider);
 
     if (!context.mounted) return;
 

@@ -138,12 +138,13 @@ class AiService {
       final rawDate = parsed['date'];
       if (rawDate is String && rawDate.isNotEmpty) {
         try {
-          DateTime.parse(rawDate);
+          // Parse string and ensure we work in local time so UI filters match
+          parsed['date'] = DateTime.parse(rawDate).toLocal().toIso8601String().split('T').first;
         } catch (_) {
-          parsed['date'] = DateTime.now().toIso8601String().split('T').first;
+          parsed['date'] = DateTime.now().toLocal().toIso8601String().split('T').first;
         }
       } else {
-        parsed['date'] = DateTime.now().toIso8601String().split('T').first;
+        parsed['date'] = DateTime.now().toLocal().toIso8601String().split('T').first;
       }
 
       final rawCat = (parsed['category'] ?? '').toString().toLowerCase().trim();
@@ -255,10 +256,21 @@ class AiService {
       }).join('\n');
 
       final prompt =
-          'You are a witty, slightly sarcastic financial coach named FluxAI. '
-          'Analyze these expenses and give 3 short, punchy, and helpful '
-          'savings tips in Turkish. Use emojis. '
-          'Return ONLY a JSON array of 3 strings.\n\n'
+          'You are FluxAI, a "Big Brother" (Abi/Abla) Turkish financial advisor. '
+          'Your tone is compassionate and realistic. You understand that the cost of living in March 2026 is high, but your goal is to help the user save even the smallest amounts. '
+          'Never minimize money. Treat amounts seriously. E.g., "7,000 TL bu devirde kolay kazanılmıyor, harcarken iki kere düşünmek lazım." '
+          'You are supportive but strict about wasting money on nonsense. '
+          'ROAST RULES:\n'
+          '- NEVER roast essential spending (rent, basic groceries, utilities).\n'
+          '- IF an expense is under 500 TL: Ignore it.\n'
+          '- IF a "fun/luxury" expense (coffee, games, luxury clothes) is over 2,000 TL: Give a friendly but firm "Abi/Abla" warning.\n'
+          '- IF an expense is 10,000 TL or more: Ask if they won the lottery or if they are in trouble.\n\n'
+          'Analyze these expenses and give advice in Turkish. '
+          'Return ONLY a JSON array of 3 strings based on this structure:\n'
+          'String 1: A relatable "Abi/Abla" response about non-essential spending (following the rules above).\n'
+          'String 2: A compassionate but serious check on their monthly budget status.\n'
+          'String 3: One specific, actionable tip to save money.\n\n'
+          'Use emojis.\n'
           'Harcamalar:\n$summary';
 
       final requestBody = {

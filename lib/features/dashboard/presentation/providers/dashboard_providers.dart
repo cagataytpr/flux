@@ -68,10 +68,45 @@ final totalBalanceProvider = Provider<double>((ref) {
 // Expense-by-Category Map (for the PieChart)
 // ---------------------------------------------------------------------------
 
-/// Map of [TransactionCategory] → total spent, excluding income entries.
+/// Map of [TransactionCategory] → total spent (All Time), excluding income entries.
 final expenseByCategoryProvider =
     Provider<Map<TransactionCategory, double>>((ref) {
   final txns = ref.watch(transactionsProvider).valueOrNull ?? [];
+  final map = <TransactionCategory, double>{};
+  for (final t in txns.where((t) => !t.isIncome)) {
+    map[t.category] = (map[t.category] ?? 0) + t.amount;
+  }
+  return map;
+});
+
+// ---------------------------------------------------------------------------
+// Current Month Calculations
+// ---------------------------------------------------------------------------
+
+/// Filters all transactions to only include the current month and year.
+final currentMonthTransactionsProvider = Provider<List<Transaction>>((ref) {
+  final txns = ref.watch(transactionsProvider).valueOrNull ?? [];
+  final now = DateTime.now();
+  
+  // BURASI DÜZELTİLDİ: t.date.toLocal() eklendi
+  return txns.where((t) {
+    final localDate = t.date.toLocal();
+    return localDate.year == now.year && localDate.month == now.month;
+  }).toList();
+});
+
+/// Total expenses for the current month.
+final currentMonthExpensesProvider = Provider<double>((ref) {
+  final txns = ref.watch(currentMonthTransactionsProvider);
+  return txns
+      .where((t) => !t.isIncome)
+      .fold(0.0, (sum, t) => sum + t.amount);
+});
+
+/// Map of [TransactionCategory] → total spent for the current month.
+final currentMonthExpenseByCategoryProvider =
+    Provider<Map<TransactionCategory, double>>((ref) {
+  final txns = ref.watch(currentMonthTransactionsProvider);
   final map = <TransactionCategory, double>{};
   for (final t in txns.where((t) => !t.isIncome)) {
     map[t.category] = (map[t.category] ?? 0) + t.amount;
@@ -94,15 +129,43 @@ final savingsTipsProvider = FutureProvider<List<String>>((ref) async {
 });
 
 // ---------------------------------------------------------------------------
-// FluxAI Savings Coach
+// FluxAI Savings Coach (Manual Refresh Only + 30-min Cooldown)
 // ---------------------------------------------------------------------------
 
+/// Timestamp of the last successful AI fetch.
+DateTime? _lastAiFetchTime;
+
+/// Cached AI advice to avoid redundant API calls.
+List<String>? _cachedAiAdvice;
+
 /// Fetches witty, Turkish-language savings advice from the FluxAI persona.
+/// This provider deliberately uses `ref.read` (NOT `ref.watch`) so it does
+/// NOT auto-refresh when transactions change. It only fires when the user
+/// explicitly calls `ref.invalidate(fluxAiAdviceProvider)`.
+///
+/// Additionally, results are cached for 30 minutes. If the user clicks
+/// refresh within the cooldown window, the cached result is returned.
 final fluxAiAdviceProvider = FutureProvider<List<String>>((ref) async {
-  final txns = ref.watch(transactionsProvider).valueOrNull ?? [];
+  // Check 30-minute cooldown
+  final now = DateTime.now();
+  if (_lastAiFetchTime != null &&
+      _cachedAiAdvice != null &&
+      now.difference(_lastAiFetchTime!).inMinutes < 30) {
+    return _cachedAiAdvice!;
+  }
+
+  // Use ref.read to avoid reactive dependency on transactions
+  final txns = ref.read(transactionsProvider).valueOrNull ?? [];
   if (txns.isEmpty) {
     return ['İlk harcamanı ekle, FluxAI seni tanısın! 🚀'];
   }
+
   final aiService = ref.read(aiServiceProvider);
-  return aiService.getSavingsAdvice(txns.take(20).toList());
+  final advice = await aiService.getSavingsAdvice(txns.take(20).toList());
+
+  // Cache the result and timestamp
+  _lastAiFetchTime = now;
+  _cachedAiAdvice = advice;
+
+  return advice;
 });

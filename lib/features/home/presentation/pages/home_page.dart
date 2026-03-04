@@ -6,9 +6,12 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:quick_actions/quick_actions.dart';
+
+import '../../../dashboard/presentation/pages/receipt_scanner.dart';
 
 /// The root scaffold of the application, managing the bottom navigation bar.
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({
     required this.navigationShell,
     super.key,
@@ -17,23 +20,55 @@ class HomePage extends ConsumerWidget {
   /// The navigation shell provided by [StatefulShellRoute].
   final StatefulNavigationShell navigationShell;
 
+  @override
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  final QuickActions quickActions = const QuickActions();
+
+  @override
+  void initState() {
+    super.initState();
+    _setupQuickActions();
+  }
+
+  void _setupQuickActions() {
+    quickActions.initialize((String shortcutType) {
+      if (shortcutType == 'action_add_receipt') {
+        // Ensure we execute after the frame builds so context is fully mounted
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showReceiptSourcePicker(context, ref);
+        });
+      }
+    });
+
+    quickActions.setShortcutItems(<ShortcutItem>[
+      const ShortcutItem(
+        type: 'action_add_receipt',
+        localizedTitle: 'Scan Receipt',
+        icon: 'receipt', // ensure there's a corresponding icon in native assets (optional)
+      ),
+    ]);
+  }
+
   void _onTap(BuildContext context, int index) {
     /// Navigate to the selected branch.
     /// If the selected tab is tapped again, it navigates to the initial root.
-    navigationShell.goBranch(
+    widget.navigationShell.goBranch(
       index,
-      initialLocation: index == navigationShell.currentIndex,
+      initialLocation: index == widget.navigationShell.currentIndex,
     );
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: navigationShell,
+      body: widget.navigationShell,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
+        selectedIndex: widget.navigationShell.currentIndex,
         onDestinationSelected: (index) => _onTap(context, index),
         indicatorColor: theme.colorScheme.primary.withValues(alpha: 0.15),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,

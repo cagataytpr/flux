@@ -7,9 +7,11 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:workmanager/workmanager.dart';
 
 import 'core/constants/app_constants.dart';
 import 'core/services/database_service.dart';
+import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
 import 'router/app_router.dart';
 
@@ -22,10 +24,24 @@ Future<void> main() async {
   // Initialize Isar database with all schemas.
   final isar = await initIsar();
 
+  // Initialize Notification Service
+  final notificationService = NotificationService();
+  await notificationService.init();
+  await notificationService.requestPermission();
+
+  // Initialize Workmanager for background tasks
+  await Workmanager().initialize(
+    callbackDispatcher,
+  );
+
+  // Register periodic background notification tasks
+  await notificationService.registerPeriodicTasks();
+
   runApp(
     ProviderScope(
       overrides: [
         isarProvider.overrideWithValue(isar),
+        notificationServiceProvider.overrideWithValue(notificationService),
       ],
       child: const FluxApp(),
     ),

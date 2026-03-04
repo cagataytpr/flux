@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/services/database_service.dart';
-import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../transactions/domain/transaction_model.dart';
 import '../../domain/subscription_model.dart';
 
@@ -94,9 +93,6 @@ class _AddSubscriptionFormState extends State<_AddSubscriptionForm> {
       await isar.subscriptions.put(sub);
       await isar.transactions.put(initialTxn);
     });
-    
-    // Invalidate dashboard stats
-    widget.ref.invalidate(subscriptionsProvider);
 
     if (!mounted) return;
     Navigator.pop(context);

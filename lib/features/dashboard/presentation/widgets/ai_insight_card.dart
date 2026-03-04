@@ -19,13 +19,30 @@ class AiInsightCard extends ConsumerWidget {
     final adviceAsync = ref.watch(fluxAiAdviceProvider);
 
     return _ShimmerBorderCard(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: adviceAsync.when(
-          loading: () => _PulsingLoader(theme: theme),
-          error: (_, __) => _ErrorState(theme: theme),
-          data: (tips) => _TipsList(theme: theme, tips: tips),
-        ),
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: adviceAsync.when(
+              loading: () => _PulsingLoader(theme: theme),
+              error: (_, __) => _ErrorState(theme: theme),
+              data: (tips) => _TipsList(theme: theme, tips: tips),
+            ),
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: IconButton(
+              icon: Icon(
+                Icons.refresh_rounded,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                size: 20,
+              ),
+              onPressed: () => ref.invalidate(fluxAiAdviceProvider),
+              tooltip: 'Refresh Advice',
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -78,11 +95,10 @@ class _ShimmerBorderCardState extends State<_ShimmerBorderCard>
               endAngle: 6.28, // 2π
               transform: GradientRotation(_ctrl.value * 6.28),
               colors: const [
-                Color(0xFF7C4DFF),
-                Color(0xFF00E5A0),
-                Color(0xFF2979FF),
-                Color(0xFFE040FB),
-                Color(0xFF7C4DFF),
+                Color(0xFFFFD700), // Gold
+                Color(0xFF7C4DFF), // Purple
+                Color(0xFFE040FB), // Magenta/Purple
+                Color(0xFFFFD700), // Gold
               ],
             ),
           ),
@@ -137,17 +153,41 @@ class _PulsingLoaderState extends State<_PulsingLoader>
       opacity: Tween<double>(begin: 0.4, end: 1.0).animate(
         CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.auto_awesome_rounded,
-              size: 18, color: widget.theme.colorScheme.primary),
-          const SizedBox(width: 10),
-          Text(
-            'FluxAI is thinking…',
-            style: widget.theme.textTheme.bodyMedium?.copyWith(
-              color: widget.theme.colorScheme.primary,
-              fontWeight: FontWeight.w600,
+          Row(
+            children: [
+              Icon(Icons.psychology_rounded,
+                  size: 24, color: widget.theme.colorScheme.primary),
+              const SizedBox(width: 10),
+              Text(
+                'FluxAI analiz ediyor...',
+                style: widget.theme.textTheme.bodyMedium?.copyWith(
+                  color: widget.theme.colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Shimmer-like bars
+          Container(
+            height: 12,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: widget.theme.colorScheme.onSurface.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            height: 12,
+            width: 200,
+            decoration: BoxDecoration(
+              color: widget.theme.colorScheme.onSurface.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
             ),
           ),
         ],
@@ -214,8 +254,8 @@ class _TipsList extends StatelessWidget {
               shaderCallback: (bounds) => const LinearGradient(
                 colors: [Color(0xFF7C4DFF), Color(0xFF00E5A0)],
               ).createShader(bounds),
-              child: const Icon(Icons.auto_awesome_rounded,
-                  size: 20, color: Colors.white),
+              child: const Icon(Icons.psychology_rounded,
+                  size: 22, color: Colors.white),
             ),
             const SizedBox(width: 8),
             ShaderMask(

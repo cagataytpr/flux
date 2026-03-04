@@ -3,31 +3,20 @@
 /// The main screen showing balance, expense chart, and AI insights.
 library;
 
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:flux/features/subscriptions/domain/subscription_model.dart';
 
+import '../../../../core/services/notification_service.dart';
 import '../../../../router/app_router.dart';
-import '../../../transactions/domain/transaction_model.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/action_bottom_sheet.dart';
 import '../widgets/ai_insight_card.dart';
 import '../widgets/balance_card.dart';
-
-/// Primary color palette for the pie-chart slices.
-const _chartColors = <TransactionCategory, Color>{
-  TransactionCategory.market: Color(0xFF7C4DFF), // Deep Purple
-  TransactionCategory.food: Color(0xFF00E5A0), // Mint Green
-  TransactionCategory.bills: Color(0xFF2979FF), // Electric Blue
-  TransactionCategory.salary: Color(0xFFFFD740), // Amber
-  TransactionCategory.investment: Color(0xFF00E5FF), // Cyan
-  TransactionCategory.transport: Color(0xFFFF6E40), // Deep Orange
-  TransactionCategory.entertainment: Color(0xFFE040FB), // Purple Accent
-  TransactionCategory.health: Color(0xFF69F0AE), // Green Accent
-};
+import '../widgets/budget_progress_card.dart';
+import '../widgets/category_expense_chart.dart';
 
 /// Main dashboard screen of the Flux application.
 class DashboardScreen extends ConsumerWidget {
@@ -35,6 +24,15 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Listen for budget threshold crossing (75% of mock 20,000 budget)
+    ref.listen<double>(currentMonthExpensesProvider, (previous, current) {
+      const budget = 20000.0;
+      final threshold = budget * 0.75;
+      if ((previous ?? 0) < threshold && current >= threshold) {
+        ref.read(notificationServiceProvider).showBudgetThresholdAlert();
+      }
+    });
+
     final theme = Theme.of(context);
     final txnsAsync = ref.watch(transactionsProvider);
     final isEmpty =
@@ -90,7 +88,8 @@ class DashboardScreen extends ConsumerWidget {
                     // ── Balance Card ────────────────────────────────
                     const BalanceCard(),
 
-                    const SizedBox(height: 16),
+                    // ── Budget Progress Card ────────────────────────
+                    const BudgetProgressCard(),
                     
                     // ── Upcoming Bill Indicator ─────────────────────
                     const _UpcomingBillIndicator(),
@@ -105,7 +104,7 @@ class DashboardScreen extends ConsumerWidget {
                     const SizedBox(height: 16),
 
                     // ── Pie Chart ──────────────────────────────────
-                    _ExpensePieChart(),
+                    const CategoryExpenseChart(),
 
                     const SizedBox(height: 28),
 
@@ -243,116 +242,6 @@ class _EmptyState extends StatelessWidget {
 // ---------------------------------------------------------------------------
 // Pie Chart
 // ---------------------------------------------------------------------------
-
-class _ExpensePieChart extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final data = ref.watch(expenseByCategoryProvider);
-
-    if (data.isEmpty) {
-      return Container(
-        height: 200,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.dividerColor, width: 0.5),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.pie_chart_outline_rounded,
-                  size: 48,
-                  color:
-                      theme.colorScheme.onSurface.withValues(alpha:  0.3)),
-              const SizedBox(height: 12),
-              Text(
-                'No expenses yet',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color:
-                      theme.colorScheme.onSurface.withValues(alpha:  0.5),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final totalExpense = data.values.fold(0.0, (a, b) => a + b);
-
-    final sections = data.entries.map((e) {
-      final pct = (e.value / totalExpense * 100);
-      final color = _chartColors[e.key] ?? theme.colorScheme.primary;
-
-      return PieChartSectionData(
-        value: e.value,
-        color: color,
-        radius: 56,
-        title: '${pct.toStringAsFixed(0)}%',
-        titleStyle: const TextStyle(
-          fontFamily: 'Inter',
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
-        ),
-        titlePositionPercentageOffset: 0.55,
-      );
-    }).toList();
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor, width: 0.5),
-      ),
-      child: Column(
-        children: [
-          SizedBox(
-            height: 200,
-            child: PieChart(
-              PieChartData(
-                sections: sections,
-                centerSpaceRadius: 40,
-                sectionsSpace: 2,
-                borderData: FlBorderData(show: false),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Legend
-          Wrap(
-            spacing: 16,
-            runSpacing: 8,
-            children: data.keys.map((cat) {
-              final color = _chartColors[cat] ?? theme.colorScheme.primary;
-              return Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    cat.name[0].toUpperCase() + cat.name.substring(1),
-                    style: theme.textTheme.bodySmall,
-                  ),
-                ],
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Upcoming Bill Indicator

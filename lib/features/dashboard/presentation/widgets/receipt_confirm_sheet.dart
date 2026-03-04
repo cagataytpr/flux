@@ -97,10 +97,10 @@ class _ReceiptConfirmSheetState extends State<ReceiptConfirmSheet> {
   DateTime _parseDate(dynamic raw) {
     if (raw is String) {
       try {
-        return DateTime.parse(raw);
+        return DateTime.parse(raw).toLocal();
       } catch (_) {}
     }
-    return DateTime.now();
+    return DateTime.now().toLocal();
   }
 
   TransactionCategory _mapCategory(dynamic raw) {
@@ -152,7 +152,7 @@ class _ReceiptConfirmSheetState extends State<ReceiptConfirmSheet> {
       category: _category,
       isIncome: false,
       isAiGenerated: true,
-      isSubscription: _isSubscription,
+      isSubscription: false,
     );
 
     Subscription? subscription;
@@ -269,7 +269,18 @@ class _ReceiptConfirmSheetState extends State<ReceiptConfirmSheet> {
                   icon: Icons.calendar_today_rounded,
                   label: 'Date',
                   value: dateStr,
-                  theme: theme),
+                  theme: theme,
+                  onTap: () async {
+                    final newDate = await showDatePicker(
+                      context: context,
+                      initialDate: _date,
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                    );
+                    if (newDate != null) {
+                      setState(() => _date = newDate);
+                    }
+                  }),
               const SizedBox(height: 14),
               _DataRow(
                   icon: Icons.category_rounded,
@@ -370,6 +381,7 @@ class _DataRow extends StatelessWidget {
     required this.value,
     required this.theme,
     this.valueColor,
+    this.onTap,
   });
 
   final IconData icon;
@@ -377,31 +389,46 @@ class _DataRow extends StatelessWidget {
   final String value;
   final ThemeData theme;
   final Color? valueColor;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.dividerColor, width: 0.5),
-      ),
-      child: Row(
-        children: [
-          Icon(icon,
-              size: 20,
-              color: theme.colorScheme.primary.withValues(alpha:  0.7)),
-          const SizedBox(width: 12),
-          Text(label,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(fontWeight: FontWeight.w500)),
-          const Spacer(),
-          Text(
-            value,
-            style: theme.textTheme.titleSmall?.copyWith(color: valueColor),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: onTap != null
+                ? theme.colorScheme.primary.withValues(alpha: 0.5)
+                : theme.dividerColor,
+            width: 0.5,
           ),
-        ],
+        ),
+        child: Row(
+          children: [
+            Icon(icon,
+                size: 20,
+                color: theme.colorScheme.primary.withValues(alpha: 0.7)),
+            const SizedBox(width: 12),
+            Text(label,
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(fontWeight: FontWeight.w500)),
+            if (onTap != null) ...[
+              const SizedBox(width: 6),
+              Icon(Icons.edit_rounded,
+                  size: 14,
+                  color: theme.colorScheme.primary.withValues(alpha: 0.7)),
+            ],
+            const Spacer(),
+            Text(
+              value,
+              style: theme.textTheme.titleSmall?.copyWith(color: valueColor),
+            ),
+          ],
+        ),
       ),
     );
   }

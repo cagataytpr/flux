@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:flux/core/services/database_service.dart';
 import 'package:flux/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:flux/features/transactions/domain/transaction_model.dart';
 
@@ -20,7 +21,10 @@ final _thisMonthTotalProvider = Provider<double>((ref) {
     data: (txns) {
       final now = DateTime.now();
       return txns
-          .where((t) => !t.isIncome && t.date.year == now.year && t.date.month == now.month)
+          .where((t) {
+            final localDate = t.date.toLocal();
+            return !t.isIncome && localDate.year == now.year && localDate.month == now.month;
+          })
           .fold(0.0, (sum, t) => sum + t.amount);
     },
     orElse: () => 0.0,
@@ -72,7 +76,27 @@ class HistoryScreen extends ConsumerWidget {
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
                       final txn = filtered[index];
-                      return _HistoryTile(transaction: txn);
+                      return Dismissible(
+                        key: ValueKey(txn.id),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          alignment: Alignment.centerRight,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.error.withValues(alpha: 0.8),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(Icons.delete_rounded, color: Colors.white),
+                        ),
+                        onDismissed: (direction) async {
+                          final isar = ref.read(isarProvider);
+                          await isar.writeTxn(() async {
+                            await isar.transactions.delete(txn.id);
+                          });
+                        },
+                        child: _HistoryTile(transaction: txn),
+                      );
                     },
                   );
                 },
