@@ -5,15 +5,17 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flux/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/services/database_service.dart';
 import '../../../../core/utils/currency_ext.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
+import '../../../subscriptions/domain/subscription_model.dart';
 import '../../../transactions/domain/transaction_model.dart';
 
 /// Shows the manual entry form as a bottom sheet.
-void showManualEntrySheet(BuildContext context, WidgetRef ref) {
+void showManualEntrySheet(BuildContext context, WidgetRef ref, {bool isSubscription = false}) {
   showModalBottomSheet<void>(
     context: context,
     backgroundColor: Colors.transparent,
@@ -23,16 +25,17 @@ void showManualEntrySheet(BuildContext context, WidgetRef ref) {
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(ctx).viewInsets.bottom,
         ),
-        child: _ManualEntryForm(parentContext: context, ref: ref),
+        child: _ManualEntryForm(parentContext: context, ref: ref, initialIsSubscription: isSubscription),
       );
     },
   );
 }
 
 class _ManualEntryForm extends StatefulWidget {
-  const _ManualEntryForm({required this.parentContext, required this.ref});
+  const _ManualEntryForm({required this.parentContext, required this.ref, this.initialIsSubscription = false});
   final BuildContext parentContext;
   final WidgetRef ref;
+  final bool initialIsSubscription;
 
   @override
   State<_ManualEntryForm> createState() => _ManualEntryFormState();
@@ -46,6 +49,14 @@ class _ManualEntryFormState extends State<_ManualEntryForm> {
   DateTime _selectedDate = DateTime.now();
   TransactionCategory _selectedCategory = TransactionCategory.market;
   bool _isIncome = false;
+  late bool _isSubscription;
+  SubscriptionCycle _selectedCycle = SubscriptionCycle.monthly;
+
+  @override
+  void initState() {
+    super.initState();
+    _isSubscription = widget.initialIsSubscription;
+  }
 
   @override
   void dispose() {
@@ -68,19 +79,35 @@ class _ManualEntryFormState extends State<_ManualEntryForm> {
       ..category = _selectedCategory
       ..isIncome = _isIncome
       ..isAiGenerated = false
-      ..isSubscription = false ;
+      ..isSubscription = _isSubscription;
+
+    Subscription? sub;
+    if (_isSubscription) {
+      sub = Subscription.create(
+        name: txn.title,
+        amount: amount,
+        nextBillingDate: _selectedDate,
+        reminderDays: 3,
+        cycle: _selectedCycle,
+        category: _selectedCategory.name,
+      );
+    }
 
     await isar.writeTxn(() async {
       await isar.transactions.put(txn);
+      if (sub != null) {
+        await isar.subscriptions.put(sub);
+      }
     });
 
     if (!mounted) return;
     Navigator.pop(context);
     
     if (widget.parentContext.mounted) {
+      final l10n = AppLocalizations.of(widget.parentContext)!;
       ScaffoldMessenger.of(widget.parentContext).showSnackBar(
         SnackBar(
-          content: Text('Saved "${txn.title}" successfully! 🎉'),
+          content: Text(l10n.savedSuccessfully(txn.title)),
           backgroundColor: const Color(0xFF00E5A0),
           behavior: SnackBarBehavior.floating,
         ),
@@ -115,6 +142,7 @@ class _ManualEntryFormState extends State<_ManualEntryForm> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final settingsStr = widget.ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
     final sym = settingsStr.currencySymbol;
 
@@ -153,7 +181,7 @@ class _ManualEntryFormState extends State<_ManualEntryForm> {
 
                 // Title
                 Text(
-                  'Manual Entry',
+                  _isSubscription ? l10n.addSubscriptionTitle : l10n.manualEntry,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -161,23 +189,32 @@ class _ManualEntryFormState extends State<_ManualEntryForm> {
                 ),
                 const SizedBox(height: 32),
 
-                // Type Toggle (Income / Expense)
-                _TypeToggle(
-                  isIncome: _isIncome,
-                  onChanged: (val) => setState(() => _isIncome = val),
-                  theme: theme,
-                ),
+                // Type Toggle (Income / Expense) or Cycle Toggle
+                if (_isSubscription)
+                  _CycleToggle(
+                    cycle: _selectedCycle,
+                    onChanged: (val) => setState(() => _selectedCycle = val),
+                    theme: theme,
+                    l10n: l10n,
+                  )
+                else
+                  _TypeToggle(
+                    isIncome: _isIncome,
+                    onChanged: (val) => setState(() => _isIncome = val),
+                    theme: theme,
+                    l10n: l10n,
+                  ),
                 const SizedBox(height: 24),
 
                 // Title Input
                 TextFormField(
                   controller: _titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Title',
-                    hintText: 'e.g. Market Alışverişi',
-                    prefixIcon: Icon(Icons.title),
+                  decoration: InputDecoration(
+                    labelText: l10n.titleLabel,
+                    hintText: l10n.titleHint,
+                    prefixIcon: const Icon(Icons.title),
                   ),
-                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                  validator: (v) => v == null || v.isEmpty ? l10n.requiredField : null,
                   textCapitalization: TextCapitalization.words,
                 ),
                 const SizedBox(height: 16),
@@ -186,15 +223,15 @@ class _ManualEntryFormState extends State<_ManualEntryForm> {
                 TextFormField(
                   controller: _amountController,
                   decoration: InputDecoration(
-                    labelText: 'Amount ($sym)',
-                    hintText: 'e.g. 150.50',
+                    labelText: l10n.amountLabel(sym),
+                    hintText: l10n.amountHint,
                     prefixIcon: const Icon(Icons.attach_money),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   validator: (v) {
-                    if (v == null || v.isEmpty) return 'Required';
+                    if (v == null || v.isEmpty) return l10n.requiredField;
                     final num = double.tryParse(v.replaceAll(',', '.'));
-                    if (num == null) return 'Invalid number';
+                    if (num == null) return l10n.invalidNumber;
                     return null;
                   },
                 ),
@@ -207,14 +244,14 @@ class _ManualEntryFormState extends State<_ManualEntryForm> {
                       flex: 3,
                       child: DropdownButtonFormField<TransactionCategory>(
                         initialValue: _selectedCategory,
-                        decoration: const InputDecoration(
-                          labelText: 'Category',
-                          prefixIcon: Icon(Icons.category_outlined),
+                        decoration: InputDecoration(
+                          labelText: l10n.categoryLabel,
+                          prefixIcon: const Icon(Icons.category_outlined),
                         ),
                         items: TransactionCategory.values.map((c) {
                           return DropdownMenuItem(
                             value: c,
-                            child: Text(c.name[0].toUpperCase() + c.name.substring(1)),
+                            child: Text(_categoryLabel(c, l10n)),
                           );
                         }).toList(),
                         onChanged: (val) {
@@ -229,9 +266,9 @@ class _ManualEntryFormState extends State<_ManualEntryForm> {
                         onTap: _pickDate,
                         borderRadius: BorderRadius.circular(16),
                         child: InputDecorator(
-                          decoration: const InputDecoration(
-                            labelText: 'Date',
-                            prefixIcon: Icon(Icons.calendar_today, size: 20),
+                          decoration: InputDecoration(
+                            labelText: l10n.dateLabel,
+                            prefixIcon: const Icon(Icons.calendar_today, size: 20),
                           ),
                           child: Text(
                             DateFormat('dd MMM').format(_selectedDate),
@@ -241,6 +278,29 @@ class _ManualEntryFormState extends State<_ManualEntryForm> {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 16),
+
+                // Subscription Toggle
+                SwitchListTile.adaptive(
+                  title: Text(
+                    l10n.recurringSubscription,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  subtitle: Text(
+                    l10n.recurringSubscriptionDesc,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  value: _isSubscription,
+                  activeTrackColor: theme.colorScheme.primary,
+                  onChanged: (val) {
+                    setState(() {
+                      _isSubscription = val;
+                      if (val) _isIncome = false; // Subscriptions are always expenses for now
+                    });
+                  },
                 ),
                 const SizedBox(height: 32),
 
@@ -255,7 +315,7 @@ class _ManualEntryFormState extends State<_ManualEntryForm> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: const Text('Save Transaction', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text(_isSubscription ? l10n.saveSubscription : l10n.saveTransaction, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -267,17 +327,18 @@ class _ManualEntryFormState extends State<_ManualEntryForm> {
 }
 
 class _TypeToggle extends StatelessWidget {
-  const _TypeToggle({required this.isIncome, required this.onChanged, required this.theme});
+  const _TypeToggle({required this.isIncome, required this.onChanged, required this.theme, required this.l10n});
   final bool isIncome;
   final ValueChanged<bool> onChanged;
   final ThemeData theme;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onSurface.withValues(alpha:  0.05),
+        color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -294,10 +355,10 @@ class _TypeToggle extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    'Expense',
+                    l10n.expenseType,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: !isIncome ? Colors.white : theme.colorScheme.onSurface.withValues(alpha:  0.5),
+                      color: !isIncome ? Colors.white : theme.colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                   ),
                 ),
@@ -316,10 +377,10 @@ class _TypeToggle extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    'Income',
+                    l10n.incomeType,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: isIncome ? Colors.black : theme.colorScheme.onSurface.withValues(alpha:  0.5),
+                      color: isIncome ? Colors.black : theme.colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                   ),
                 ),
@@ -329,5 +390,85 @@ class _TypeToggle extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _CycleToggle extends StatelessWidget {
+  const _CycleToggle({required this.cycle, required this.onChanged, required this.theme, required this.l10n});
+  final SubscriptionCycle cycle;
+  final ValueChanged<SubscriptionCycle> onChanged;
+  final ThemeData theme;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => onChanged(SubscriptionCycle.monthly),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: cycle == SubscriptionCycle.monthly ? theme.colorScheme.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Text(
+                    l10n.monthlyCycle,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: cycle == SubscriptionCycle.monthly ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => onChanged(SubscriptionCycle.yearly),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: cycle == SubscriptionCycle.yearly ? theme.colorScheme.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Text(
+                    l10n.yearlyCycle,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: cycle == SubscriptionCycle.yearly ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _categoryLabel(TransactionCategory cat, AppLocalizations l10n) {
+  switch (cat) {
+    case TransactionCategory.market: return l10n.catMarket;
+    case TransactionCategory.food: return l10n.catFood;
+    case TransactionCategory.bills: return l10n.catBills;
+    case TransactionCategory.salary: return l10n.catSalary;
+    case TransactionCategory.investment: return l10n.catInvestment;
+    case TransactionCategory.transport: return l10n.catTransport;
+    case TransactionCategory.entertainment: return l10n.catEntertainment;
+    case TransactionCategory.health: return l10n.catHealth;
   }
 }

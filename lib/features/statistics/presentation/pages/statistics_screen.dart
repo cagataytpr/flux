@@ -7,13 +7,17 @@ library;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flux/l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../core/services/exchange_rate_service.dart';
 import '../../../../core/utils/currency_ext.dart';
-import '../../../settings/presentation/providers/settings_provider.dart';
-
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../transactions/domain/transaction_model.dart';
 import '../providers/statistics_providers.dart';
+import '../widgets/analysis_widgets.dart';
+import '../widgets/goals_section.dart';
 
 // ─── Category Visual Config ─────────────────────────────────────────────────
 
@@ -39,24 +43,24 @@ const _categoryColors = <TransactionCategory, Color>{
   TransactionCategory.health: Color(0xFF45B7D1),
 };
 
-String _categoryLabel(TransactionCategory cat) {
+String _categoryLabel(TransactionCategory cat, AppLocalizations l10n) {
   switch (cat) {
     case TransactionCategory.market:
-      return 'Market';
+      return l10n.catMarket;
     case TransactionCategory.food:
-      return 'Yemek';
+      return l10n.catFood;
     case TransactionCategory.bills:
-      return 'Faturalar';
+      return l10n.catBills;
     case TransactionCategory.salary:
-      return 'Maaş';
+      return l10n.catSalary;
     case TransactionCategory.investment:
-      return 'Yatırım';
+      return l10n.catInvestment;
     case TransactionCategory.transport:
-      return 'Ulaşım';
+      return l10n.catTransport;
     case TransactionCategory.entertainment:
-      return 'Eğlence';
+      return l10n.catEntertainment;
     case TransactionCategory.health:
-      return 'Sağlık';
+      return l10n.catHealth;
   }
 }
 
@@ -68,76 +72,117 @@ class StatisticsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final spending = ref.watch(categorySpendingProvider);
-    final totalSpent = ref.watch(currentMonthExpensesProvider);
-    final budget = ref.watch(userBudgetProvider);
+    final l10n = AppLocalizations.of(context)!;
+    
+    final spendingRaw = ref.watch(categorySpendingProvider);
+    final totalSpentRaw = ref.watch(filteredExpensesProvider);
+    final budgetRaw = ref.watch(userBudgetProvider);
+    
     final settingsStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
     final sym = settingsStr.currencySymbol;
+    final ex = ref.watch(exchangeRateServiceProvider);
+
+    final totalSpent = ex.convertToSelected(totalSpentRaw, settingsStr);
+    final budget = ex.convertToSelected(budgetRaw, settingsStr);
+    
+    final spending = spendingRaw.map((s) => CategorySpending(
+      category: s.category,
+      amount: ex.convertToSelected(s.amount, settingsStr),
+      percentage: s.percentage,
+    )).toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Analytics'),
+        title: Text(l10n.analytics),
         centerTitle: true,
       ),
       body: SafeArea(
-        child: spending.isEmpty
-            ? _buildEmptyState(theme)
-            : ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                children: [
-                  // ── Header Summary ──
-                  _SummaryHeader(
-                    totalSpent: totalSpent,
-                    budget: budget,
-                    theme: theme,
-                    sym: sym,
-                  ),
+        child: Column(
+          children: [
+            // ── Month Selector (Always Visible) ──
+            _MonthSelector(theme: theme, settingsStr: settingsStr),
 
-                  const SizedBox(height: 16),
+            Expanded(
+              child: spending.isEmpty
+                  ? _buildEmptyState(theme, l10n)
+                  : ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      children: [
+                        // ── Gamification: Streak Badge (Only show if positive) ──
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: StreakBadge(),
+                        ),
+                        const SizedBox(height: 16),
 
-                  // ── FluxAI Category Roast ──
-                  _FluxAiRoastCard(theme: theme),
+                        // ── Header Summary ──
+                        _SummaryHeader(
+                          totalSpent: totalSpent,
+                          budget: budget,
+                          theme: theme,
+                          sym: sym,
+                          l10n: l10n,
+                        ),
 
-                  const SizedBox(height: 24),
+                        const SizedBox(height: 16),
 
-                  // ── Bar Chart ──
-                  Text(
-                    'Kategori Bazlı Harcamalar',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
+                        // ── Cash Flow Forecast Card ──
+                        const CashFlowForecastCard(),
+
+                        const SizedBox(height: 16),
+
+                        // ── FluxAI Category Roast ──
+                        _FluxAiRoastCard(theme: theme, l10n: l10n),
+
+                        const SizedBox(height: 24),
+
+                        // ── Bar Chart ──
+                        Text(
+                          l10n.spendingByCategory,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        _SpendingBarChart(spending: spending, theme: theme, sym: sym, l10n: l10n),
+
+                        const SizedBox(height: 28),
+
+                        // ── Top Spending List ──
+                        Text(
+                          l10n.spendingRank,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ...spending.asMap().entries.map(
+                          (entry) => _SpendingRankTile(
+                            rank: entry.key + 1,
+                            spending: entry.value,
+                            budget: budget,
+                            theme: theme,
+                            sym: sym,
+                            l10n: l10n,
+                          ),
+                        ),
+
+                        const SizedBox(height: 32),
+
+                        // ── Savings Goals Section ──
+                        const GoalsSection(),
+
+                        const SizedBox(height: 32),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  _SpendingBarChart(spending: spending, theme: theme, sym: sym),
-
-                  const SizedBox(height: 28),
-
-                  // ── Top Spending List ──
-                  Text(
-                    'Harcama Sıralaması',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ...spending.asMap().entries.map(
-                    (entry) => _SpendingRankTile(
-                      rank: entry.key + 1,
-                      spending: entry.value,
-                      budget: budget,
-                      theme: theme,
-                      sym: sym,
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-                ],
-              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildEmptyState(ThemeData theme) {
+  Widget _buildEmptyState(ThemeData theme, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -149,7 +194,7 @@ class StatisticsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Henüz analiz için yeterli veri yok.\nHarcama ekleyerek başla!',
+            l10n.emptyAnalytics,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
@@ -169,12 +214,14 @@ class _SummaryHeader extends StatelessWidget {
     required this.budget,
     required this.theme,
     required this.sym,
+    required this.l10n,
   });
 
   final double totalSpent;
   final double budget;
   final ThemeData theme;
   final String sym;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +262,7 @@ class _SummaryHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Bu Ay Harcanan',
+                      l10n.spentThisMonth,
                       style: theme.textTheme.labelLarge?.copyWith(
                         color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                         fontWeight: FontWeight.w500,
@@ -237,7 +284,7 @@ class _SummaryHeader extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    'Kalan',
+                     l10n.remaining,
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       fontWeight: FontWeight.w500,
@@ -280,11 +327,13 @@ class _SpendingBarChart extends StatelessWidget {
     required this.spending,
     required this.theme,
     required this.sym,
+    required this.l10n,
   });
 
   final List<CategorySpending> spending;
   final ThemeData theme;
   final String sym;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -311,7 +360,7 @@ class _SpendingBarChart extends StatelessWidget {
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 final cat = spending[group.x.toInt()].category;
                 return BarTooltipItem(
-                  '${_categoryLabel(cat)}\n$sym${rod.toY.toStringAsFixed(0)}',
+                  '${_categoryLabel(cat, l10n)}\n$sym${rod.toY.toStringAsFixed(0)}',
                   const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -393,6 +442,7 @@ class _SpendingRankTile extends StatelessWidget {
     required this.budget,
     required this.theme,
     required this.sym,
+    required this.l10n,
   });
 
   final int rank;
@@ -400,12 +450,13 @@ class _SpendingRankTile extends StatelessWidget {
   final double budget;
   final ThemeData theme;
   final String sym;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
     final color = _categoryColors[spending.category] ?? theme.colorScheme.primary;
     final icon = _categoryIcons[spending.category] ?? Icons.category_rounded;
-    final label = _categoryLabel(spending.category);
+    final label = _categoryLabel(spending.category, l10n);
     final budgetPercent = budget > 0
         ? (spending.amount / budget * 100).toStringAsFixed(1)
         : '0.0';
@@ -492,7 +543,7 @@ class _SpendingRankTile extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                '%$budgetPercent bütçe',
+                l10n.budgetPercentage(budgetPercent),
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                   fontWeight: FontWeight.w500,
@@ -509,9 +560,10 @@ class _SpendingRankTile extends StatelessWidget {
 // ─── FluxAI Roast Card ──────────────────────────────────────────────────────
 
 class _FluxAiRoastCard extends ConsumerWidget {
-  const _FluxAiRoastCard({required this.theme});
+  const _FluxAiRoastCard({required this.theme, required this.l10n});
 
   final ThemeData theme;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -546,7 +598,7 @@ class _FluxAiRoastCard extends ConsumerWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'FluxAI Reality Check',
+                  l10n.fluxAiRealityCheck,
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: theme.colorScheme.primary,
@@ -558,7 +610,7 @@ class _FluxAiRoastCard extends ConsumerWidget {
                 visualDensity: VisualDensity.compact,
                 iconSize: 20,
                 color: theme.colorScheme.primary.withValues(alpha: 0.6),
-                tooltip: 'Yenile',
+                tooltip: l10n.refresh,
                 icon: const Icon(Icons.refresh_rounded),
                 onPressed: () => ref.invalidate(categoryRoastProvider),
               ),
@@ -567,14 +619,14 @@ class _FluxAiRoastCard extends ConsumerWidget {
           const SizedBox(height: 12),
           roastAsync.when(
             loading: () => Text(
-              'Harcamaların analiz ediliyor...',
+              l10n.analyzingSpending,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 fontStyle: FontStyle.italic,
               ),
             ),
             error: (_, __) => Text(
-              'Analiz şu an yapılamıyor.',
+              l10n.analysisFailed,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
@@ -586,6 +638,54 @@ class _FluxAiRoastCard extends ConsumerWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Month Selector ─────────────────────────────────────────────────────────
+
+class _MonthSelector extends ConsumerWidget {
+  const _MonthSelector({required this.theme, required this.settingsStr});
+  final ThemeData theme;
+  final String settingsStr;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedMonth = ref.watch(selectedMonthProvider);
+    final locale = ref.watch(settingsProvider.select((s) => s.valueOrNull?.language)) ?? 'en';
+    
+    // Format: 'September 2026' or 'Eylül 2026'
+    final label = DateFormat('MMMM yyyy', locale).format(selectedMonth);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0, top: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            icon: Icon(Icons.chevron_left_rounded, color: theme.colorScheme.onSurface),
+            onPressed: () {
+              ref.read(selectedMonthProvider.notifier).update((state) {
+                return DateTime(state.year, state.month - 1);
+              });
+            },
+          ),
+          Text(
+            label,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.chevron_right_rounded, color: theme.colorScheme.onSurface),
+            onPressed: () {
+              ref.read(selectedMonthProvider.notifier).update((state) {
+                return DateTime(state.year, state.month + 1);
+              });
+            },
           ),
         ],
       ),

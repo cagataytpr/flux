@@ -32,13 +32,18 @@ const SettingsSchema = CollectionSchema(
       name: r'language',
       type: IsarType.string,
     ),
-    r'notificationsEnabled': PropertySchema(
+    r'monthlyBudget': PropertySchema(
       id: 3,
+      name: r'monthlyBudget',
+      type: IsarType.double,
+    ),
+    r'notificationsEnabled': PropertySchema(
+      id: 4,
       name: r'notificationsEnabled',
       type: IsarType.bool,
     ),
     r'themeMode': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'themeMode',
       type: IsarType.string,
     )
@@ -78,8 +83,9 @@ void _settingsSerialize(
   writer.writeBool(offsets[0], object.biometricEnabled);
   writer.writeString(offsets[1], object.defaultCurrency);
   writer.writeString(offsets[2], object.language);
-  writer.writeBool(offsets[3], object.notificationsEnabled);
-  writer.writeString(offsets[4], object.themeMode);
+  writer.writeDouble(offsets[3], object.monthlyBudget);
+  writer.writeBool(offsets[4], object.notificationsEnabled);
+  writer.writeString(offsets[5], object.themeMode);
 }
 
 Settings _settingsDeserialize(
@@ -93,8 +99,9 @@ Settings _settingsDeserialize(
   object.defaultCurrency = reader.readString(offsets[1]);
   object.id = id;
   object.language = reader.readString(offsets[2]);
-  object.notificationsEnabled = reader.readBool(offsets[3]);
-  object.themeMode = reader.readString(offsets[4]);
+  object.monthlyBudget = reader.readDouble(offsets[3]);
+  object.notificationsEnabled = reader.readBool(offsets[4]);
+  object.themeMode = reader.readString(offsets[5]);
   return object;
 }
 
@@ -112,8 +119,10 @@ P _settingsDeserializeProp<P>(
     case 2:
       return (reader.readString(offset)) as P;
     case 3:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 4:
+      return (reader.readBool(offset)) as P;
+    case 5:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -537,6 +546,69 @@ extension SettingsQueryFilter
     });
   }
 
+  QueryBuilder<Settings, Settings, QAfterFilterCondition> monthlyBudgetEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'monthlyBudget',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Settings, Settings, QAfterFilterCondition>
+      monthlyBudgetGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'monthlyBudget',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Settings, Settings, QAfterFilterCondition> monthlyBudgetLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'monthlyBudget',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Settings, Settings, QAfterFilterCondition> monthlyBudgetBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'monthlyBudget',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
   QueryBuilder<Settings, Settings, QAfterFilterCondition>
       notificationsEnabledEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
@@ -722,6 +794,18 @@ extension SettingsQuerySortBy on QueryBuilder<Settings, Settings, QSortBy> {
     });
   }
 
+  QueryBuilder<Settings, Settings, QAfterSortBy> sortByMonthlyBudget() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'monthlyBudget', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Settings, Settings, QAfterSortBy> sortByMonthlyBudgetDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'monthlyBudget', Sort.desc);
+    });
+  }
+
   QueryBuilder<Settings, Settings, QAfterSortBy> sortByNotificationsEnabled() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'notificationsEnabled', Sort.asc);
@@ -798,6 +882,18 @@ extension SettingsQuerySortThenBy
     });
   }
 
+  QueryBuilder<Settings, Settings, QAfterSortBy> thenByMonthlyBudget() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'monthlyBudget', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Settings, Settings, QAfterSortBy> thenByMonthlyBudgetDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'monthlyBudget', Sort.desc);
+    });
+  }
+
   QueryBuilder<Settings, Settings, QAfterSortBy> thenByNotificationsEnabled() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'notificationsEnabled', Sort.asc);
@@ -847,6 +943,12 @@ extension SettingsQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Settings, Settings, QDistinct> distinctByMonthlyBudget() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'monthlyBudget');
+    });
+  }
+
   QueryBuilder<Settings, Settings, QDistinct> distinctByNotificationsEnabled() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'notificationsEnabled');
@@ -884,6 +986,12 @@ extension SettingsQueryProperty
   QueryBuilder<Settings, String, QQueryOperations> languageProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'language');
+    });
+  }
+
+  QueryBuilder<Settings, double, QQueryOperations> monthlyBudgetProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'monthlyBudget');
     });
   }
 

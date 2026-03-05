@@ -6,14 +6,13 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flux/l10n/app_localizations.dart';
 
+import '../../../../core/services/database_service.dart';
 import '../../../../core/utils/currency_ext.dart';
-import '../../../settings/presentation/providers/settings_provider.dart';
-
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/subscription_model.dart';
-
-import '../widgets/add_subscription_sheet.dart';
 
 /// Screen listing all tracked subscriptions.
 class SubscriptionsScreen extends ConsumerWidget {
@@ -22,18 +21,14 @@ class SubscriptionsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final subsAsync = ref.watch(subscriptionsProvider);
     final settingsStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
     final sym = settingsStr.currencySymbol;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Subscriptions'),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => showAddSubscriptionSheet(context, ref),
-        backgroundColor: theme.colorScheme.primary,
-        child: const Icon(Icons.add_rounded, size: 32),
+        title: Text(l10n.subscriptions),
       ),
       body: subsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -44,7 +39,7 @@ class SubscriptionsScreen extends ConsumerWidget {
         ),
         data: (subs) {
           if (subs.isEmpty) {
-            return _EmptyState(theme: theme);
+            return _EmptyState(theme: theme, l10n: l10n);
           }
           
           final totalMonthly = subs.fold<double>(
@@ -77,7 +72,7 @@ class SubscriptionsScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     Text(
-                      'Monthly Burn Rate',
+                      l10n.monthlyBurnRate,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.primary,
                         fontWeight: FontWeight.w600,
@@ -92,7 +87,7 @@ class SubscriptionsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Total scheduled payments this month',
+                      l10n.totalScheduledPayments,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
@@ -123,8 +118,9 @@ class SubscriptionsScreen extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.theme});
+  const _EmptyState({required this.theme, required this.l10n});
   final ThemeData theme;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -139,24 +135,23 @@ class _EmptyState extends StatelessWidget {
               height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: theme.colorScheme.primary.withValues(alpha:  0.10),
+                color: theme.colorScheme.primary.withValues(alpha: 0.10),
               ),
               child: Icon(Icons.repeat_rounded,
                   size: 36,
-                  color: theme.colorScheme.primary.withValues(alpha:  0.5)),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.5)),
             ),
             const SizedBox(height: 24),
             Text(
-              'No Subscriptions Yet',
+              l10n.noSubscriptions,
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'When you scan a receipt from services like Netflix or Spotify, '
-              'enable "Repeat Monthly?" to track it here.',
+              l10n.noSubscriptionsDesc,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha:  0.5),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 height: 1.5,
               ),
             ),
@@ -171,14 +166,15 @@ class _EmptyState extends StatelessWidget {
 // Subscription tile
 // ---------------------------------------------------------------------------
 
-class _SubscriptionTile extends StatelessWidget {
+class _SubscriptionTile extends ConsumerWidget {
   const _SubscriptionTile({required this.sub, required this.sym});
   final Subscription sub;
   final String sym;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final billing =
@@ -219,7 +215,7 @@ class _SubscriptionTile extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha:  0.12),
+              color: theme.colorScheme.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(Icons.repeat_rounded,
@@ -241,29 +237,52 @@ class _SubscriptionTile extends StatelessWidget {
                   '$cycleLabel · $sym${sub.amount.toStringAsFixed(2)}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color:
-                        theme.colorScheme.onSurface.withValues(alpha:  0.5),
+                        theme.colorScheme.onSurface.withValues(alpha: 0.5),
                   ),
                 ),
               ],
             ),
           ),
 
-          // Days-left badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: badgeColor.withValues(alpha:  0.15),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              badgeText,
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: badgeColor,
+          // Days-left badge & Menu
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: badgeColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  badgeText,
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: badgeColor,
+                  ),
+                ),
               ),
-            ),
+              const SizedBox(width: 8),
+              PopupMenuButton<String>(
+                icon: Icon(Icons.more_vert, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                onSelected: (value) async {
+                  if (value == 'delete') {
+                    final isar = ref.read(isarProvider);
+                    await isar.writeTxn(() async {
+                      await isar.subscriptions.delete(sub.id);
+                    });
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Text(l10n.delete, style: TextStyle(color: theme.colorScheme.error)),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

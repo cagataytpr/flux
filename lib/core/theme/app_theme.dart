@@ -202,7 +202,7 @@ abstract final class AppTheme {
       // ── Navigation Bar (Material 3) ──
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: _surface,
-        indicatorColor: _primaryColor.withValues(alpha:  0.15),
+        indicatorColor: _primaryColor.withValues(alpha: 0.15),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return const TextStyle(
@@ -279,7 +279,7 @@ abstract final class AppTheme {
       // ── Chip ──
       chipTheme: ChipThemeData(
         backgroundColor: _surfaceVariant,
-        selectedColor: _primaryColor.withValues(alpha:  0.2),
+        selectedColor: _primaryColor.withValues(alpha: 0.2),
         labelStyle: const TextStyle(
           fontFamily: 'Inter',
           fontSize: 13,
@@ -311,7 +311,7 @@ abstract final class AppTheme {
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return _primaryColor.withValues(alpha:  0.35);
+            return _primaryColor.withValues(alpha: 0.35);
           }
           return _surfaceVariant;
         }),

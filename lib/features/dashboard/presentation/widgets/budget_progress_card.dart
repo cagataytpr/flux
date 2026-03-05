@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:flux/l10n/app_localizations.dart';
+import '../../../../core/services/exchange_rate_service.dart';
 import '../../../../core/utils/currency_ext.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 
@@ -13,12 +16,17 @@ class BudgetProgressCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final settingsStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
     final sym = settingsStr.currencySymbol;
+    final ex = ref.watch(exchangeRateServiceProvider);
     
     // Dynamic budget from provider
-    final double monthlyBudget = ref.watch(userBudgetProvider);
-    final totalSpent = ref.watch(currentMonthExpensesProvider);
+    final double baseMonthlyBudget = ref.watch(userBudgetProvider);
+    final double baseTotalSpent = ref.watch(currentMonthExpensesProvider);
+
+    final double monthlyBudget = ex.convertToSelected(baseMonthlyBudget, settingsStr);
+    final double totalSpent = ex.convertToSelected(baseTotalSpent, settingsStr);
 
     // Handle division by zero
     double progress = 0.0;
@@ -61,11 +69,23 @@ class BudgetProgressCard extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Monthly Budget',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+              Row(
+                children: [
+                  Text(
+                    l10n.monthlyBudget,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  InkWell(
+                    onTap: () => _showBudgetDialog(context, ref, baseMonthlyBudget, sym),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Icon(Icons.edit_rounded, size: 16, color: theme.colorScheme.primary),
+                    ),
+                  ),
+                ],
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -101,7 +121,7 @@ class BudgetProgressCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Spent',
+                    l10n.spent,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
@@ -119,7 +139,7 @@ class BudgetProgressCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    'Remaining',
+                    l10n.remaining,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
@@ -137,6 +157,47 @@ class BudgetProgressCard extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showBudgetDialog(BuildContext context, WidgetRef ref, double currentBudget, String symbol) {
+    final controller = TextEditingController(text: currentBudget.toStringAsFixed(0));
+    final l10n = AppLocalizations.of(context)!;
+    
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Set Monthly Budget'),
+          content: TextField(
+            controller: controller,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+            decoration: InputDecoration(
+              labelText: 'Amount',
+              suffixText: symbol,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l10n.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final newBudget = double.tryParse(controller.text);
+                if (newBudget != null && newBudget > 0) {
+                  ref.read(settingsProvider.notifier).updateMonthlyBudget(newBudget);
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

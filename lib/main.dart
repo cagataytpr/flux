@@ -4,24 +4,26 @@
 /// the application with Riverpod.
 library;
 
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flux/l10n/app_localizations.dart';
 import 'package:workmanager/workmanager.dart';
-
 import 'core/constants/app_constants.dart';
 import 'core/services/database_service.dart';
 import 'core/services/exchange_rate_service.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/widget_manager.dart';
 import 'core/theme/app_theme.dart';
 import 'features/settings/presentation/providers/settings_provider.dart';
 import 'router/app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  await WidgetManager.init(); // Initialize Home Widget
 
   // Load environment variables.
   await dotenv.load(fileName: '.env');
@@ -91,19 +93,17 @@ class FluxApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       locale: locale,
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('en', 'US'),
-        Locale('tr', 'TR'),
-      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       themeMode: themeMode,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeAnimationDuration: const Duration(milliseconds: 350),
-      themeAnimationCurve: Curves.easeInOutCubic,
+      themeAnimationDuration: const Duration(milliseconds: 300),
+      themeAnimationCurve: Curves.easeOut,
       routerConfig: appRouter,
     );
   }

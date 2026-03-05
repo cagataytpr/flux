@@ -57,7 +57,7 @@ Future<void> showReceiptSourcePicker(BuildContext context, WidgetRef ref) async 
           style: TextStyle(
             fontFamily: 'Inter',
             fontSize: 13,
-            color: theme.colorScheme.onSurface.withValues(alpha:  0.6),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
           ),
         ),
         actions: [
@@ -151,7 +151,7 @@ Future<void> _runScanFlow(
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: t.colorScheme.primary.withValues(alpha:  0.12),
+                  color: t.colorScheme.primary.withValues(alpha: 0.12),
                   blurRadius: 32,
                 ),
               ],
@@ -237,7 +237,7 @@ Future<void> _runScanFlow(
     messenger.showSnackBar(
       SnackBar(
         content: Text(msg),
-        backgroundColor: const Color(0xFF00E5A0).withValues(alpha:  0.9),
+        backgroundColor: const Color(0xFF00E5A0).withValues(alpha: 0.9),
       ),
     );
 

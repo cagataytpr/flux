@@ -5,12 +5,12 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flux/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/utils/currency_ext.dart';
 import '../../../../core/services/exchange_rate_service.dart';
+import '../../../../core/utils/currency_ext.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
-
 import '../providers/dashboard_providers.dart';
 
 /// A premium dark-glass balance card with a soft glow effect.
@@ -20,6 +20,7 @@ class BalanceCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final balance = ref.watch(totalBalanceProvider);
     final income = ref.watch(totalIncomeProvider);
     final expenses = ref.watch(totalExpensesProvider);
@@ -42,25 +43,25 @@ class BalanceCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(24),
         gradient: LinearGradient(
           colors: [
-            theme.colorScheme.primary.withValues(alpha:  0.15),
-            theme.colorScheme.secondary.withValues(alpha:  0.08),
+            theme.colorScheme.primary.withValues(alpha: 0.15),
+            theme.colorScheme.secondary.withValues(alpha: 0.08),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         border: Border.all(
-          color: theme.colorScheme.primary.withValues(alpha:  0.25),
+          color: theme.colorScheme.primary.withValues(alpha: 0.25),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha:  0.20),
+            color: theme.colorScheme.primary.withValues(alpha: 0.20),
             blurRadius: 32,
             spreadRadius: -4,
             offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: theme.colorScheme.secondary.withValues(alpha:  0.10),
+            color: theme.colorScheme.secondary.withValues(alpha: 0.10),
             blurRadius: 48,
             spreadRadius: -8,
             offset: const Offset(0, 16),
@@ -72,9 +73,9 @@ class BalanceCard extends ConsumerWidget {
         children: [
           // ── Label ──
           Text(
-            'Total Balance',
+            l10n.totalBalance,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha:  0.6),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               letterSpacing: 1,
               fontWeight: FontWeight.w500,
             ),
@@ -121,14 +122,14 @@ class BalanceCard extends ConsumerWidget {
               _MiniStat(
                 icon: Icons.arrow_downward_rounded,
                 iconColor: const Color(0xFF00E5A0),
-                label: 'Income',
+                label: l10n.income,
                 value: '$sym${fmt.format(cIncome)}',
               ),
               const SizedBox(width: 24),
               _MiniStat(
                 icon: Icons.arrow_upward_rounded,
                 iconColor: theme.colorScheme.error,
-                label: 'Expenses',
+                label: l10n.expenses,
                 value: '$sym${fmt.format(cExpenses)}',
               ),
             ],
@@ -167,7 +168,7 @@ class _MiniStat extends ConsumerWidget {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: iconColor.withValues(alpha:  0.12),
+            color: iconColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: iconColor, size: 18),
@@ -179,7 +180,7 @@ class _MiniStat extends ConsumerWidget {
             Text(
               label,
               style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha:  0.5),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
             Text(

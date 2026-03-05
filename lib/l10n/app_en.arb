@@ -1,0 +1,194 @@
+{
+  "@@locale": "en",
+  "dashboardTitle": "Dashboard",
+  "settings": "Settings",
+  "history": "History",
+  "addExpense": "Add Expense",
+  "totalBalance": "Total Balance",
+  "subscriptions": "Subscriptions",
+  "goals": "Goals",
+  "home": "Home",
+  "stats": "Stats",
+  "dashboard": "Dashboard",
+  "flux": "Flux",
+  "myGoals": "My Goals",
+  "spendingByCategory": "Spending by Category",
+  "preferences": "PREFERENCES",
+  "theme": "Theme",
+  "system": "System",
+  "light": "Light",
+  "dark": "Dark",
+  "language": "Language",
+  "defaultCurrency": "Default Currency",
+  "notificationsUppercase": "NOTIFICATIONS",
+  "pushNotifications": "Push Notifications",
+  "pushNotificationsSubtitle": "Reminders for bills and budget alerts",
+  "dataAndBackup": "DATA & BACKUP",
+  "exportData": "Export Data to CSV",
+  "wipeAllData": "Wipe All Data",
+  "errorLoadingSettings": "Error loading settings",
+  "income": "Income",
+  "expenses": "Expenses",
+  "monthlyBudget": "Monthly Budget",
+  "spent": "Spent",
+  "remaining": "Remaining",
+  "upcomingPayment": "Upcoming Payment",
+  "dueToday": "{name} is due today.",
+  "@dueToday": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "dueTomorrow": "{name} is due tomorrow.",
+  "@dueTomorrow": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "dueInDays": "{name} is due in {days} days.",
+  "@dueInDays": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "days": { "type": "int" }
+    }
+  },
+  "thisMonth": "This Month",
+  "analytics": "Analytics",
+  "emptyAnalytics": "Not enough data for analysis yet.\nStart by adding expenses!",
+  "spentThisMonth": "Spent This Month",
+  "spendingRank": "Top Spending",
+  "budgetPercentage": "{percent}% of budget",
+  "@budgetPercentage": {
+    "placeholders": {
+      "percent": { "type": "String" }
+    }
+  },
+  "fluxAiRealityCheck": "FluxAI Reality Check",
+  "refresh": "Refresh",
+  "analyzingSpending": "Analyzing your spending...",
+  "analysisFailed": "Analysis is currently unavailable.",
+  "historyAndInsights": "History & Insights",
+  "all": "All",
+  "noExpensesCategory": "No expenses in this category.",
+  "noExpensesYet": "No expenses yet!\nTime to spend?",
+  "catMarket": "Market",
+  "catFood": "Food",
+  "catBills": "Bills",
+  "catSalary": "Salary",
+  "catInvestment": "Investment",
+  "catTransport": "Transport",
+  "catEntertainment": "Entertainment",
+  "catHealth": "Health",
+  "savedSuccessfully": "Saved \"{name}\" successfully! 🎉",
+  "@savedSuccessfully": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "saveSubscription": "Save Subscription",
+  "saveTransaction": "Save Transaction",
+  "addToGoal": "Add to {name}",
+  "@addToGoal": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cancel": "Cancel",
+  "add": "Add",
+  "savingsGoals": "Savings Goals",
+  "deleteGoal": "Delete Goal?",
+  "deleteGoalConfirm": "Are you sure you want to delete {name}?",
+  "@deleteGoalConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "delete": "Delete",
+  "createGoal": "Create Goal",
+  "chooseIcon": "Choose Icon",
+  "chooseColor": "Choose Color",
+  "receiptScanned": "Receipt Scanned",
+  "receiptScanError": "Could not read the receipt. Please try again.",
+  "unlockFlux": "Unlock Flux",
+  "monthlyBurnRate": "Monthly Burn Rate",
+  "totalScheduledPayments": "Total scheduled payments this month",
+  "noSubscriptions": "No Subscriptions",
+  "noSubscriptionsDesc": "When you scan a receipt from services like Netflix or Spotify, enable \"Repeat Monthly?\" to track it here.",
+  "goalAchieved": "Goal Achieved! 🎉",
+  "goalLeftToGo": "{remaining} left to go!",
+  "@goalLeftToGo": {
+    "placeholders": {
+      "remaining": { "type": "String" }
+    }
+  },
+  "goalTargetDateReached": "Target date reached. Time to evaluate!",
+  "goalSavePerDay": "Save {dailyTarget} / day to reach it in time.",
+  "@goalSavePerDay": {
+    "placeholders": {
+      "dailyTarget": { "type": "String" }
+    }
+  },
+  "goalEmptyStateDesc": "Start dreaming! Whether it's a new car, a vacation, or an emergency fund, track it here.",
+  "newTransaction": "New Transaction",
+  "newTransactionDesc": "How would you like to add this?",
+  "scanReceipt": "Scan Receipt",
+  "scanReceiptDesc": "AI will instantly extract the details",
+  "manualEntry": "Manual Entry",
+  "manualEntryDesc": "Type in the details yourself",
+  "regularSubscription": "Regular Subscription",
+  "regularSubscriptionDesc": "Track a new recurring payment",
+  "titleLabel": "Title",
+  "titleHint": "e.g. Grocery Shopping",
+  "amountLabel": "Amount ({sym})",
+  "@amountLabel": {
+    "placeholders": {
+      "sym": { "type": "String" }
+    }
+  },
+  "amountHint": "e.g. 150.50",
+  "categoryLabel": "Category",
+  "dateLabel": "Date",
+  "recurringSubscription": "Recurring Subscription",
+  "recurringSubscriptionDesc": "Automatically tracks this as a payment",
+  "expenseType": "Expense",
+  "incomeType": "Income",
+  "monthlyCycle": "Monthly",
+  "yearlyCycle": "Yearly",
+  "addSubscriptionTitle": "Add Subscription",
+  "requiredField": "Required",
+  "invalidNumber": "Invalid number",
+  "delete": "Delete",
+  "edit": "Edit",
+  "deleteSubscriptionTitle": "Delete Subscription",
+  "deleteSubscriptionContent": "Are you sure you want to delete {name}?",
+  "@deleteSubscriptionContent": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cancel": "Cancel",
+  "streakDays": "{days} Day Streak! \uD83D\uDD25",
+  "@streakDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "eomForecast": "End of Month Forecast",
+  "predictedBalance": "Predicted Balance",
+  "forecastBasedOn": "Based on your daily spend of {sym}{amount} and upcoming subscriptions.",
+  "@forecastBasedOn": {
+    "placeholders": {
+      "sym": { "type": "String" },
+      "amount": { "type": "String" }
+    }
+  },
+  "homeScreenWidget": "Home Screen Widget",
+  "widgetSetupDesc": "Add a widget to your home screen to see your balance and budget at a glance.",
+  "addToHomeScreen": "Add to Home Screen",
+  "manualSetup": "Manual Setup Instructions",
+  "widgetInstructionsTitle": "How to add manually",
+  "widgetInstructionsAndroid": "1. Long press on your home screen.\n2. Tap 'Widgets'.\n3. Find 'Flux' and drag the widget to your screen.",
+  "widgetInstructionsiOS": "1. Long press an empty area on your home screen until the apps jiggle.\n2. Tap the '+' button in the upper-left corner.\n3. Search for 'Flux' and tap 'Add Widget'.",
+  "pinWidgetError": "Your device doesn't support automatic pinning. Please add the widget manually.",
+  "done": "Done"
+}

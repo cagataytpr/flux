@@ -15,7 +15,7 @@ final exchangeRateServiceProvider = Provider<ExchangeRateService>((ref) {
 class ExchangeRateService {
   final Isar _isar;
   static const String _baseUrl = 'https://api.frankfurter.dev/v1/latest?base=TRY';
-  static const Duration _cacheExpiration = Duration(hours: 6);
+  static const Duration _cacheExpiration = Duration(hours: 1);
 
   ExchangeRateService(this._isar);
 

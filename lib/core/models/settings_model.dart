@@ -18,5 +18,7 @@ class Settings {
 
   bool biometricEnabled = false;
 
+  double monthlyBudget = 20000.0;
+
   Settings();
 }

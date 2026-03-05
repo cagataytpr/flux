@@ -6,15 +6,14 @@ library;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/auth/presentation/pages/auth_check_screen.dart';
 import '../features/dashboard/presentation/pages/dashboard_screen.dart';
-import '../features/goals/presentation/pages/goals_screen.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/home/presentation/pages/splash_screen.dart';
 import '../features/settings/presentation/pages/settings_screen.dart';
 import '../features/statistics/presentation/pages/statistics_screen.dart';
 import '../features/subscriptions/presentation/pages/subscriptions_screen.dart';
 import '../features/transactions/presentation/pages/history_screen.dart';
-import '../features/auth/presentation/pages/auth_check_screen.dart';
 
 /// Route path constants.
 abstract final class RoutePaths {
@@ -25,7 +24,6 @@ abstract final class RoutePaths {
   static const String history = '/history';
   static const String subscriptions = '/subscriptions';
   static const String settings = '/settings';
-  static const String goals = '/goals';
 }
 
 /// Route name constants.
@@ -37,13 +35,13 @@ abstract final class RouteNames {
   static const String history = 'history';
   static const String subscriptions = 'subscriptions';
   static const String settings = 'settings';
-  static const String goals = 'goals';
 }
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _dashboardNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'dashboard');
 final _statisticsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'statistics');
 final _historyNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'history');
+final _subscriptionsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'subscriptions');
 final _settingsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'settings');
 
 /// Application router configuration.
@@ -90,24 +88,6 @@ final GoRouter appRouter = GoRouter(
                 state: state,
                 child: const DashboardScreen(),
               ),
-              routes: [
-                GoRoute(
-                  path: 'subscriptions',
-                  name: RouteNames.subscriptions,
-                  pageBuilder: (context, state) => _buildPage(
-                    state: state,
-                    child: const SubscriptionsScreen(),
-                  ),
-                ),
-                GoRoute(
-                  path: 'goals',
-                  name: RouteNames.goals,
-                  pageBuilder: (context, state) => _buildPage(
-                    state: state,
-                    child: const GoalsScreen(),
-                  ),
-                ),
-              ],
             ),
           ],
         ),
@@ -139,7 +119,21 @@ final GoRouter appRouter = GoRouter(
             ),
           ],
         ),
-        // Tab 3: Settings Branch
+        // Tab 3: Subscriptions Branch
+        StatefulShellBranch(
+          navigatorKey: _subscriptionsNavigatorKey,
+          routes: [
+            GoRoute(
+              path: RoutePaths.subscriptions,
+              name: RouteNames.subscriptions,
+              pageBuilder: (context, state) => _buildPage(
+                state: state,
+                child: const SubscriptionsScreen(),
+              ),
+            ),
+          ],
+        ),
+        // Tab 4: Settings Branch
         StatefulShellBranch(
           navigatorKey: _settingsNavigatorKey,
           routes: [
@@ -170,17 +164,13 @@ CustomTransitionPage<void> _buildPage({
   return CustomTransitionPage<void>(
     key: state.pageKey,
     child: child,
-    transitionDuration: const Duration(milliseconds: 350),
+    transitionDuration: const Duration(milliseconds: 300),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final curveAnim = CurvedAnimation(parent: animation, curve: Curves.fastOutSlowIn);
-      final scaleAnim = Tween<double>(begin: 0.98, end: 1.0).animate(curveAnim);
+      final curveAnim = CurvedAnimation(parent: animation, curve: Curves.easeOut);
       
       return FadeTransition(
         opacity: curveAnim,
-        child: ScaleTransition(
-          scale: scaleAnim,
-          child: child,
-        ),
+        child: child,
       );
     },
   );
@@ -250,7 +240,6 @@ class _AnimatedBranchContainer extends StatefulWidget {
 class _AnimatedBranchContainerState extends State<_AnimatedBranchContainer> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
   
   late int _currentIndex;
   late int _previousIndex;
@@ -262,11 +251,10 @@ class _AnimatedBranchContainerState extends State<_AnimatedBranchContainer> with
     _previousIndex = widget.currentIndex;
     _controller = AnimationController(
       vsync: this, 
-      duration: const Duration(milliseconds: 350),
+      duration: const Duration(milliseconds: 300),
     );
-    final curve = CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn);
+    final curve = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(curve);
-    _scaleAnimation = Tween<double>(begin: 0.98, end: 1.0).animate(curve);
     _controller.value = 1.0;
   }
 
@@ -307,17 +295,16 @@ class _AnimatedBranchContainerState extends State<_AnimatedBranchContainer> with
             if (isTransitioning) {
                if (isPrevious) {
                  // Cross-fade the outgoing page
-                 final fadeOut = Tween<double>(begin: 1.0, end: 0.0).animate(CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn));
-                 final scaleOut = Tween<double>(begin: 1.0, end: 0.98).animate(CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn));
+                 final fadeOut = Tween<double>(begin: 1.0, end: 0.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
                  return FadeTransition(
                    opacity: fadeOut,
-                   child: ScaleTransition(scale: scaleOut, child: child),
+                   child: child,
                  );
                } else if (isCurrent) {
                  // Cross-fade the incoming page
                  return FadeTransition(
                    opacity: _fadeAnimation,
-                   child: ScaleTransition(scale: _scaleAnimation, child: child),
+                   child: child,
                  );
                }
             }

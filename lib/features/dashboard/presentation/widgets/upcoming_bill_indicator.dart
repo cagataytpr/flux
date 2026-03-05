@@ -6,6 +6,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:flux/l10n/app_localizations.dart';
 import '../../../../core/utils/currency_ext.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../providers/dashboard_providers.dart';
@@ -17,6 +18,7 @@ class UpcomingBillIndicator extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final settingsStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
     final sym = settingsStr.currencySymbol;
     final subscriptionsAsync = ref.watch(subscriptionsProvider);
@@ -49,11 +51,11 @@ class UpcomingBillIndicator extends ConsumerWidget {
 
         final String dueText;
         if (minDays == 0) {
-          dueText = '${nextSub.name} is due today.';
+          dueText = l10n.dueToday(nextSub.name);
         } else if (minDays == 1) {
-          dueText = '${nextSub.name} is due tomorrow.';
+          dueText = l10n.dueTomorrow(nextSub.name);
         } else {
-          dueText = '${nextSub.name} is due in $minDays days.';
+          dueText = l10n.dueInDays(nextSub.name, minDays);
         }
 
         return Container(
@@ -93,7 +95,7 @@ class UpcomingBillIndicator extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Upcoming Payment',
+                      l10n.upcomingPayment,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                         fontWeight: FontWeight.w600,

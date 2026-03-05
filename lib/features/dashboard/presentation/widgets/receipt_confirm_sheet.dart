@@ -210,7 +210,7 @@ class _ReceiptConfirmSheetState extends ConsumerState<ReceiptConfirmSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurface.withValues(alpha:  0.2),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -246,7 +246,7 @@ class _ReceiptConfirmSheetState extends ConsumerState<ReceiptConfirmSheet> {
                           'Review the details below',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurface
-                                .withValues(alpha:  0.5),
+                                .withValues(alpha: 0.5),
                           ),
                         ),
                       ],
@@ -304,15 +304,15 @@ class _ReceiptConfirmSheetState extends ConsumerState<ReceiptConfirmSheet> {
                   gradient: _isSubscription
                       ? LinearGradient(
                           colors: [
-                            theme.colorScheme.primary.withValues(alpha:  0.10),
+                            theme.colorScheme.primary.withValues(alpha: 0.10),
                             theme.colorScheme.secondary
-                                .withValues(alpha:  0.06),
+                                .withValues(alpha: 0.06),
                           ],
                         )
                       : null,
                   border: Border.all(
                     color: _isSubscription
-                        ? theme.colorScheme.primary.withValues(alpha:  0.3)
+                        ? theme.colorScheme.primary.withValues(alpha: 0.3)
                         : theme.dividerColor,
                     width: 0.5,
                   ),
@@ -325,7 +325,7 @@ class _ReceiptConfirmSheetState extends ConsumerState<ReceiptConfirmSheet> {
                       color: _isSubscription
                           ? theme.colorScheme.primary
                           : theme.colorScheme.onSurface
-                              .withValues(alpha:  0.5),
+                              .withValues(alpha: 0.5),
                     ),
                     const SizedBox(width: 12),
                     Expanded(

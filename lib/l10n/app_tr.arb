@@ -1,0 +1,194 @@
+{
+  "@@locale": "tr",
+  "dashboardTitle": "Kontrol Paneli",
+  "settings": "Ayarlar",
+  "history": "Geçmiş",
+  "addExpense": "Gider Ekle",
+  "totalBalance": "Toplam Bakiye",
+  "subscriptions": "Abonelikler",
+  "goals": "Hedefler",
+  "home": "Ana Sayfa",
+  "stats": "İstatistikler",
+  "dashboard": "Kontrol Paneli",
+  "flux": "Flux",
+  "myGoals": "Hedeflerim",
+  "spendingByCategory": "Kategoriye Göre Harcama",
+  "preferences": "TERCİHLER",
+  "theme": "Tema",
+  "system": "Sistem",
+  "light": "Açık",
+  "dark": "Koyu",
+  "language": "Dil",
+  "defaultCurrency": "Varsayılan Para Birimi",
+  "notificationsUppercase": "BİLDİRİMLER",
+  "pushNotifications": "Anlık Bildirimler",
+  "pushNotificationsSubtitle": "Faturalar ve bütçe uyarıları",
+  "dataAndBackup": "VERİ VE YEDEKLEME",
+  "exportData": "Veriyi CSV'ye Aktar",
+  "wipeAllData": "Tüm Verileri Sil",
+  "errorLoadingSettings": "Ayarlar yüklenirken hata oluştu",
+  "income": "Gelir",
+  "expenses": "Giderler",
+  "monthlyBudget": "Aylık Bütçe",
+  "spent": "Harcanan",
+  "remaining": "Kalan",
+  "upcomingPayment": "Yaklaşan Ödeme",
+  "dueToday": "{name} bugün ödeniyor.",
+  "@dueToday": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "dueTomorrow": "{name} yarın ödeniyor.",
+  "@dueTomorrow": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "dueInDays": "{name} ödemesine {days} gün kaldı.",
+  "@dueInDays": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "days": { "type": "int" }
+    }
+  },
+  "thisMonth": "Bu Ay",
+  "analytics": "Analizler",
+  "emptyAnalytics": "Henüz analiz için yeterli veri yok.\nHarcama ekleyerek başla!",
+  "spentThisMonth": "Bu Ay Harcanan",
+  "spendingRank": "Harcama Sıralaması",
+  "budgetPercentage": "%{percent} bütçe",
+  "@budgetPercentage": {
+    "placeholders": {
+      "percent": { "type": "String" }
+    }
+  },
+  "fluxAiRealityCheck": "FluxAI Gerçeklik Kontrolü",
+  "refresh": "Yenile",
+  "analyzingSpending": "Harcamaların analiz ediliyor...",
+  "analysisFailed": "Analiz şu an yapılamıyor.",
+  "historyAndInsights": "Geçmiş ve İçgörüler",
+  "all": "Tümü",
+  "noExpensesCategory": "Bu kategoride harcama yok.",
+  "noExpensesYet": "Henüz harcama yok!\nHarcama zamanı?",
+  "catMarket": "Market",
+  "catFood": "Yemek",
+  "catBills": "Faturalar",
+  "catSalary": "Maaş",
+  "catInvestment": "Yatırım",
+  "catTransport": "Ulaşım",
+  "catEntertainment": "Eğlence",
+  "catHealth": "Sağlık",
+  "savedSuccessfully": "\"{name}\" başarıyla kaydedildi! 🎉",
+  "@savedSuccessfully": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "saveSubscription": "Aboneliği Kaydet",
+  "saveTransaction": "İşlemi Kaydet",
+  "addToGoal": "{name} hedefine ekle",
+  "@addToGoal": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cancel": "İptal",
+  "add": "Ekle",
+  "savingsGoals": "Birikim Hedefleri",
+  "deleteGoal": "Hedefi Sil?",
+  "deleteGoalConfirm": "\"{name}\" hedefini silmek istediğinize emin misiniz?",
+  "@deleteGoalConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "delete": "Sil",
+  "createGoal": "Hedef Oluştur",
+  "chooseIcon": "İkon Seç",
+  "chooseColor": "Renk Seç",
+  "receiptScanned": "Fiş Tarandı",
+  "receiptScanError": "Fiş okunamadı. Lütfen tekrar deneyin.",
+  "unlockFlux": "Flux'ın Kilidini Aç",
+  "monthlyBurnRate": "Aylık Sabit Gider",
+  "totalScheduledPayments": "Bu ay planlanan toplam ödemeler",
+  "noSubscriptions": "Abonelik Bulunamadı",
+  "noSubscriptionsDesc": "Netflix veya Spotify gibi servislerden fiş tarattığınızda, buraya kaydetmek için \"Her Ay Tekrarla?\" seçeneğini aktifleştirin.",
+  "goalAchieved": "Hedefine Ulaştın! 🎉",
+  "goalLeftToGo": "Hedefe {remaining} kaldı!",
+  "@goalLeftToGo": {
+    "placeholders": {
+      "remaining": { "type": "String" }
+    }
+  },
+  "goalTargetDateReached": "Hedef tarihine ulaşıldı. Değerlendirme zamanı!",
+  "goalSavePerDay": "Zamanında ulaşmak için günde {dailyTarget} biriktir.",
+  "@goalSavePerDay": {
+    "placeholders": {
+      "dailyTarget": { "type": "String" }
+    }
+  },
+  "goalEmptyStateDesc": "Hayal kurmaya başla! Yeni bir araba, tatil veya acil durum fonu, hepsini buradan takip et.",
+  "newTransaction": "Yeni İşlem",
+  "newTransactionDesc": "Bunu nasıl eklemek istersin?",
+  "scanReceipt": "Fiş Tara",
+  "scanReceiptDesc": "Yapay zeka detayları saniyeler içinde çıkarsın",
+  "manualEntry": "Manuel Ekleme",
+  "manualEntryDesc": "Detayları kendin gir",
+  "regularSubscription": "Düzenli Abonelik",
+  "regularSubscriptionDesc": "Yeni bir tekrarlayan ödeme takip et",
+  "titleLabel": "Başlık",
+  "titleHint": "Örn. Market Alışverişi",
+  "amountLabel": "Tutar ({sym})",
+  "@amountLabel": {
+    "placeholders": {
+      "sym": { "type": "String" }
+    }
+  },
+  "amountHint": "Örn. 150.50",
+  "categoryLabel": "Kategori",
+  "dateLabel": "Tarih",
+  "recurringSubscription": "Düzenli Abonelik",
+  "recurringSubscriptionDesc": "Bunu düzenli bir ödeme olarak takip eder",
+  "expenseType": "Gider",
+  "incomeType": "Gelir",
+  "monthlyCycle": "Aylık",
+  "yearlyCycle": "Yıllık",
+  "addSubscriptionTitle": "Abonelik Ekle",
+  "requiredField": "Zorunlu",
+  "invalidNumber": "Geçersiz sayı",
+  "delete": "Sil",
+  "edit": "Düzenle",
+  "deleteSubscriptionTitle": "Aboneliği Sil",
+  "deleteSubscriptionContent": "{name} aboneliğini silmek istediğine emin misin?",
+  "@deleteSubscriptionContent": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cancel": "İptal",
+  "streakDays": "{days} Günlük Seri! \uD83D\uDD25",
+  "@streakDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "eomForecast": "Ay Sonu Tahmini",
+  "predictedBalance": "Tahmini Bakiye",
+  "forecastBasedOn": "Günlük ortalama {sym}{amount} harcamanıza ve gelecek aboneliklere göre.",
+  "@forecastBasedOn": {
+    "placeholders": {
+      "sym": { "type": "String" },
+      "amount": { "type": "String" }
+    }
+  },
+  "homeScreenWidget": "Ana Ekran Widget'ı",
+  "widgetSetupDesc": "Bakiye ve bütçe durumunu anlık görmek için ana ekranına widget ekle.",
+  "addToHomeScreen": "Ana Ekrana Ekle",
+  "manualSetup": "Manuel Kurulum Talimatları",
+  "widgetInstructionsTitle": "Manuel olarak nasıl eklenir?",
+  "widgetInstructionsAndroid": "1. Ana ekranda boş bir yere basılı tutun.\n2. 'Widget'lar' öğesine dokunun.\n3. 'Flux' uygulamasını bulun ve widget'ı ekranınıza sürükleyin.",
+  "widgetInstructionsiOS": "1. Uygulamalar titreyene kadar ana ekranda boş bir yere basılı tutun.\n2. Sol üst köşedeki '+' butonuna dokunun.\n3. 'Flux'ı arayın ve 'Widget Ekle'ye dokunun.",
+  "pinWidgetError": "Cihazınız otomatik eklemeyi desteklemiyor. Lütfen manuel olarak ekleyin.",
+  "done": "Tamam"
+}

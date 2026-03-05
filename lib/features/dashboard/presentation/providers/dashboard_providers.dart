@@ -6,6 +6,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import '../../../../core/services/database_service.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../subscriptions/domain/subscription_model.dart';
 import '../../../transactions/domain/transaction_model.dart';
 
@@ -13,13 +14,20 @@ import '../../../transactions/domain/transaction_model.dart';
 // User Budget
 // ---------------------------------------------------------------------------
 
-/// The user's monthly budget. Defaults to 20,000 TL.
-/// This will be made user-editable in a future phase.
-final userBudgetProvider = StateProvider<double>((ref) => 20000.0);
+/// The user's monthly budget retrieved from global settings.
+final userBudgetProvider = Provider<double>((ref) {
+  final settings = ref.watch(settingsProvider).valueOrNull;
+  return settings?.monthlyBudget ?? 20000.0;
+});
 
 // ---------------------------------------------------------------------------
-// Transactions
+// Transactions & Filtering
 // ---------------------------------------------------------------------------
+
+/// Null means "All Time", otherwise specific month. Defaults to null.
+final dashboardMonthFilterProvider = StateProvider<DateTime?>((ref) {
+  return null;
+});
 
 /// Streams all transactions from the Isar database, ordered by date (newest
 /// first).
@@ -45,21 +53,33 @@ final subscriptionsProvider = StreamProvider<List<Subscription>>((ref) {
       .watch(fireImmediately: true);
 });
 
+/// Filters transactions based on the dashboard month filter.
+final dashboardFilteredTransactionsProvider = Provider<List<Transaction>>((ref) {
+  final txns = ref.watch(transactionsProvider).valueOrNull ?? [];
+  final filter = ref.watch(dashboardMonthFilterProvider);
+  if (filter == null) return txns;
+
+  return txns.where((t) {
+    final localDate = t.date.toLocal();
+    return localDate.year == filter.year && localDate.month == filter.month;
+  }).toList();
+});
+
 // ---------------------------------------------------------------------------
-// Balance Calculations
+// Balance Calculations (Filtered by Selected Month / All Time)
 // ---------------------------------------------------------------------------
 
-/// Total income derived from [transactionsProvider].
+/// Total income derived from [dashboardFilteredTransactionsProvider].
 final totalIncomeProvider = Provider<double>((ref) {
-  final txns = ref.watch(transactionsProvider).valueOrNull ?? [];
+  final txns = ref.watch(dashboardFilteredTransactionsProvider);
   return txns
       .where((t) => t.isIncome)
       .fold(0.0, (sum, t) => sum + t.amount);
 });
 
-/// Total expenses derived from [transactionsProvider].
+/// Total expenses derived from [dashboardFilteredTransactionsProvider].
 final totalExpensesProvider = Provider<double>((ref) {
-  final txns = ref.watch(transactionsProvider).valueOrNull ?? [];
+  final txns = ref.watch(dashboardFilteredTransactionsProvider);
   return txns
       .where((t) => !t.isIncome)
       .fold(0.0, (sum, t) => sum + t.amount);
@@ -74,10 +94,10 @@ final totalBalanceProvider = Provider<double>((ref) {
 // Expense-by-Category Map (for the PieChart)
 // ---------------------------------------------------------------------------
 
-/// Map of [TransactionCategory] → total spent (All Time), excluding income entries.
+/// Map of [TransactionCategory] → total spent (Filtered by Dashboard Selection), excluding income entries.
 final expenseByCategoryProvider =
     Provider<Map<TransactionCategory, double>>((ref) {
-  final txns = ref.watch(transactionsProvider).valueOrNull ?? [];
+  final txns = ref.watch(dashboardFilteredTransactionsProvider);
   final map = <TransactionCategory, double>{};
   for (final t in txns.where((t) => !t.isIncome)) {
     map[t.category] = (map[t.category] ?? 0) + t.amount;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flux/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
 
@@ -77,7 +78,7 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
               ElevatedButton.icon(
                 onPressed: _authenticate,
                 icon: const Icon(Icons.fingerprint),
-                label: const Text('Unlock Flux'),
+                label: Text(AppLocalizations.of(context)!.unlockFlux),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00E5A0),
                   foregroundColor: Colors.black,

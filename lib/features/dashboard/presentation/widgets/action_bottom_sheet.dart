@@ -6,6 +6,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:flux/l10n/app_localizations.dart';
 import '../pages/receipt_scanner.dart';
 import 'manual_entry_sheet.dart';
 
@@ -17,6 +18,7 @@ void showActionPickerSheet(BuildContext context, WidgetRef ref) {
     isScrollControlled: true,
     builder: (BuildContext ctx) {
       final theme = Theme.of(ctx);
+      final l10n = AppLocalizations.of(ctx)!;
 
       return Container(
         padding: const EdgeInsets.only(top: 24, bottom: 40, left: 24, right: 24),
@@ -45,14 +47,14 @@ void showActionPickerSheet(BuildContext context, WidgetRef ref) {
             const SizedBox(height: 32),
 
             Text(
-              'New Transaction',
+              l10n.newTransaction,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'How would you like to add this?',
+              l10n.newTransactionDesc,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
@@ -62,8 +64,8 @@ void showActionPickerSheet(BuildContext context, WidgetRef ref) {
             // Scan Option
             _ActionTile(
               icon: Icons.document_scanner_rounded,
-              title: 'Scan Receipt',
-              subtitle: 'AI will instantly extract the details',
+              title: l10n.scanReceipt,
+              subtitle: l10n.scanReceiptDesc,
               color: theme.colorScheme.primary,
               onTap: () {
                 Navigator.pop(ctx);
@@ -75,12 +77,25 @@ void showActionPickerSheet(BuildContext context, WidgetRef ref) {
             // Manual Option
             _ActionTile(
               icon: Icons.edit_document,
-              title: 'Manual Entry',
-              subtitle: 'Type in the details yourself',
+              title: l10n.manualEntry,
+              subtitle: l10n.manualEntryDesc,
               color: const Color(0xFF00E5A0),
               onTap: () {
                 Navigator.pop(ctx);
                 showManualEntrySheet(context, ref);
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Subscription Option
+            _ActionTile(
+              icon: Icons.repeat_rounded,
+              title: l10n.regularSubscription,
+              subtitle: l10n.regularSubscriptionDesc,
+              color: const Color(0xFFFFB300),
+              onTap: () {
+                Navigator.pop(ctx);
+                showManualEntrySheet(context, ref, isSubscription: true);
               },
             ),
           ],
@@ -147,7 +162,7 @@ class _ActionTile extends StatelessWidget {
                   Text(
                     subtitle,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha:  0.6),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -155,7 +170,7 @@ class _ActionTile extends StatelessWidget {
             ),
             Icon(
               Icons.chevron_right_rounded,
-              color: theme.colorScheme.onSurface.withValues(alpha:  0.3),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
             ),
           ],
         ),

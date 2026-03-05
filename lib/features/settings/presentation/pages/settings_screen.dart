@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flux/l10n/app_localizations.dart';
 
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/widget_manager.dart';
 import '../providers/settings_provider.dart';
 
 /// The Settings Screen for managing user preferences.
@@ -12,22 +13,23 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsAsync = ref.watch(settingsProvider);
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(l10n.settings),
         centerTitle: false,
       ),
       body: settingsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error loading settings: $error')),
+        error: (error, stack) => Center(child: Text('${l10n.errorLoadingSettings}: $error')),
         data: (settings) {
           return ListView(
             padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
             children: [
               // --- Preferences Section ---
               Text(
-                'PREFERENCES',
+                l10n.preferences,
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: theme.colorScheme.primary,
                   fontWeight: FontWeight.bold,
@@ -40,14 +42,14 @@ class SettingsScreen extends ConsumerWidget {
                   // Theme Selector
                   ListTile(
                     leading: const Icon(Icons.palette_outlined),
-                    title: const Text('Theme'),
+                    title: Text(l10n.theme),
                     trailing: DropdownButton<String>(
                       value: settings.themeMode,
                       underline: const SizedBox(),
-                      items: const [
-                        DropdownMenuItem(value: 'system', child: Text('System')),
-                        DropdownMenuItem(value: 'light', child: Text('Light')),
-                        DropdownMenuItem(value: 'dark', child: Text('Dark')),
+                      items: [
+                        DropdownMenuItem(value: 'system', child: Text(l10n.system)),
+                        DropdownMenuItem(value: 'light', child: Text(l10n.light)),
+                        DropdownMenuItem(value: 'dark', child: Text(l10n.dark)),
                       ],
                       onChanged: (val) {
                         if (val != null) {
@@ -61,7 +63,7 @@ class SettingsScreen extends ConsumerWidget {
                   // Language Selector
                   ListTile(
                     leading: const Icon(Icons.language_rounded),
-                    title: const Text('Language'),
+                    title: Text(l10n.language),
                     trailing: DropdownButton<String>(
                       value: settings.language,
                       underline: const SizedBox(),
@@ -81,7 +83,7 @@ class SettingsScreen extends ConsumerWidget {
                   // Currency Selector
                   ListTile(
                     leading: const Icon(Icons.attach_money_rounded),
-                    title: const Text('Default Currency'),
+                    title: Text(l10n.defaultCurrency),
                     trailing: DropdownButton<String>(
                       value: settings.defaultCurrency,
                       underline: const SizedBox(),
@@ -103,7 +105,7 @@ class SettingsScreen extends ConsumerWidget {
 
               // --- Notifications Section ---
               Text(
-                'NOTIFICATIONS',
+                l10n.notificationsUppercase,
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: theme.colorScheme.primary,
                   fontWeight: FontWeight.bold,
@@ -115,8 +117,8 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                   SwitchListTile.adaptive(
                     secondary: const Icon(Icons.notifications_active_outlined),
-                    title: const Text('Push Notifications'),
-                    subtitle: const Text('Reminders for bills and budget alerts'),
+                    title: Text(l10n.pushNotifications),
+                    subtitle: Text(l10n.pushNotificationsSubtitle),
                     value: settings.notificationsEnabled,
                     activeTrackColor: theme.colorScheme.primary,
                     onChanged: (val) {
@@ -127,11 +129,11 @@ class SettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
 
-              // --- Data & Backup Section ---
+              // --- Home Screen Widget Section ---
               Text(
-                'DATA & BACKUP',
+                l10n.homeScreenWidget.toUpperCase(),
                 style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.error,
+                  color: theme.colorScheme.primary,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,
                 ),
@@ -140,26 +142,33 @@ class SettingsScreen extends ConsumerWidget {
               _SettingsCard(
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.download_rounded),
-                    title: const Text('Export Data to CSV'),
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () {
-                      // TODO: Implement CSV export
+                    leading: const Icon(Icons.widgets_outlined),
+                    title: Text(l10n.addToHomeScreen),
+                    subtitle: Text(l10n.widgetSetupDesc),
+                    trailing: const Icon(Icons.add_circle_outline_rounded),
+                    onTap: () async {
+                      final success = await WidgetManager.requestPinWidget();
+                      if (!success && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(l10n.pinWidgetError)),
+                        );
+                      }
                     },
                   ),
                   const Divider(height: 1, indent: 56),
                   ListTile(
-                    leading: Icon(Icons.delete_forever_rounded, color: theme.colorScheme.error),
-                    title: Text(
-                      'Wipe All Data',
-                      style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold),
-                    ),
+                    leading: const Icon(Icons.help_outline_rounded),
+                    title: Text(l10n.manualSetup),
+                    trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () {
-                      // TODO: Implement factory reset
+                      _showWidgetInstructions(context, l10n);
                     },
                   ),
                 ],
               ),
+              const SizedBox(height: 32),
+
+              // --- Data & Backup Section ---
               const SizedBox(height: 48),
 
               // App Version info
@@ -176,6 +185,44 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+void _showWidgetInstructions(BuildContext context, AppLocalizations l10n) {
+  final theme = Theme.of(context);
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(l10n.widgetInstructionsTitle),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Android',
+              style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.primary),
+            ),
+            const SizedBox(height: 8),
+            Text(l10n.widgetInstructionsAndroid),
+            const SizedBox(height: 16),
+            Text(
+              'iOS',
+              style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.primary),
+            ),
+            const SizedBox(height: 8),
+            Text(l10n.widgetInstructionsiOS),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.done),
+        ),
+      ],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    ),
+  );
 }
 
 /// A reusable sleek card container for settings groups.

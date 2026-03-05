@@ -9,6 +9,42 @@ import '../../../../core/services/ai_service.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../transactions/domain/transaction_model.dart';
 
+/// The selected month to filter statistics. Defaults to the current month.
+final selectedMonthProvider = StateProvider<DateTime>((ref) {
+  final now = DateTime.now();
+  return DateTime(now.year, now.month);
+});
+
+/// Filters all transactions for the selected month and year.
+final filteredTransactionsProvider = Provider<List<Transaction>>((ref) {
+  final txns = ref.watch(transactionsProvider).valueOrNull ?? [];
+  final selected = ref.watch(selectedMonthProvider);
+  
+  return txns.where((t) {
+    final localDate = t.date.toLocal();
+    return localDate.year == selected.year && localDate.month == selected.month;
+  }).toList();
+});
+
+/// Total expenses for the selected month.
+final filteredExpensesProvider = Provider<double>((ref) {
+  final txns = ref.watch(filteredTransactionsProvider);
+  return txns
+      .where((t) => !t.isIncome)
+      .fold(0.0, (sum, t) => sum + t.amount);
+});
+
+/// Map of [TransactionCategory] → total spent for the selected month.
+final filteredExpenseByCategoryProvider =
+    Provider<Map<TransactionCategory, double>>((ref) {
+  final txns = ref.watch(filteredTransactionsProvider);
+  final map = <TransactionCategory, double>{};
+  for (final t in txns.where((t) => !t.isIncome)) {
+    map[t.category] = (map[t.category] ?? 0) + t.amount;
+  }
+  return map;
+});
+
 // ---------------------------------------------------------------------------
 // Category Spending Data
 // ---------------------------------------------------------------------------
@@ -28,8 +64,8 @@ class CategorySpending {
 
 /// Provides a list of [CategorySpending] sorted by highest spending first.
 final categorySpendingProvider = Provider<List<CategorySpending>>((ref) {
-  final categoryMap = ref.watch(currentMonthExpenseByCategoryProvider);
-  final totalSpent = ref.watch(currentMonthExpensesProvider);
+  final categoryMap = ref.watch(filteredExpenseByCategoryProvider);
+  final totalSpent = ref.watch(filteredExpensesProvider);
 
   if (categoryMap.isEmpty || totalSpent <= 0) return [];
 

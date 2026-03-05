@@ -8,11 +8,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flux/core/services/database_service.dart';
 import 'package:flux/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:flux/features/transactions/domain/transaction_model.dart';
+import 'package:flux/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/utils/currency_ext.dart';
 import '../../../../core/services/exchange_rate_service.dart';
+import '../../../../core/utils/currency_ext.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
+
+String _categoryLabel(TransactionCategory cat, AppLocalizations l10n) {
+  switch (cat) {
+    case TransactionCategory.market: return l10n.catMarket;
+    case TransactionCategory.food: return l10n.catFood;
+    case TransactionCategory.bills: return l10n.catBills;
+    case TransactionCategory.salary: return l10n.catSalary;
+    case TransactionCategory.investment: return l10n.catInvestment;
+    case TransactionCategory.transport: return l10n.catTransport;
+    case TransactionCategory.entertainment: return l10n.catEntertainment;
+    case TransactionCategory.health: return l10n.catHealth;
+  }
+}
 
 /// Provider for the currently active category filter
 final _historyCategoryFilterProvider = StateProvider<TransactionCategory?>((ref) => null);
@@ -41,6 +55,7 @@ class HistoryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final txnsAsync = ref.watch(transactionsProvider);
     final activeCategory = ref.watch(_historyCategoryFilterProvider);
     final settingsStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
@@ -52,10 +67,10 @@ class HistoryScreen extends ConsumerWidget {
         child: Column(
           children: [
             // Header: Title & Total Spent Card
-            _buildHeader(context, ref, sym),
+            _buildHeader(context, ref, sym, l10n),
             
             // Filter Bar
-            _buildFilterBar(context, ref, activeCategory),
+            _buildFilterBar(context, ref, activeCategory, l10n),
 
             // Transactions List
             Expanded(
@@ -73,7 +88,7 @@ class HistoryScreen extends ConsumerWidget {
                   filtered.sort((a, b) => b.date.compareTo(a.date));
 
                   if (filtered.isEmpty) {
-                    return _buildEmptyState(theme, activeCategory != null);
+                    return _buildEmptyState(theme, activeCategory != null, l10n);
                   }
 
                   return ListView.builder(
@@ -113,7 +128,7 @@ class HistoryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, WidgetRef ref, String sym) {
+  Widget _buildHeader(BuildContext context, WidgetRef ref, String sym, AppLocalizations l10n) {
     final theme = Theme.of(context);
     final totalSpent = ref.watch(_thisMonthTotalProvider);
     final currencyStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
@@ -128,7 +143,7 @@ class HistoryScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'History & Insights',
+            l10n.historyAndInsights,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w800,
               letterSpacing: -0.5,
@@ -155,7 +170,7 @@ class HistoryScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'This Month',
+                  l10n.thisMonth,
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     fontWeight: FontWeight.w600,
@@ -182,6 +197,7 @@ class HistoryScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     TransactionCategory? activeCategory,
+    AppLocalizations l10n,
   ) {
     return SizedBox(
       height: 50,
@@ -192,7 +208,7 @@ class HistoryScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: FilterChip(
-              label: const Text('All'),
+              label: Text(l10n.all),
               selected: activeCategory == null,
               onSelected: (_) => ref.read(_historyCategoryFilterProvider.notifier).state = null,
             ),
@@ -203,7 +219,7 @@ class HistoryScreen extends ConsumerWidget {
               padding: const EdgeInsets.only(right: 8),
               child: FilterChip(
                 label: Text(
-                  cat.name[0].toUpperCase() + cat.name.substring(1),
+                  _categoryLabel(cat, l10n),
                 ),
                 selected: isSelected,
                 onSelected: (_) => ref.read(_historyCategoryFilterProvider.notifier).state = cat,
@@ -215,7 +231,7 @@ class HistoryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(ThemeData theme, bool isFiltered) {
+  Widget _buildEmptyState(ThemeData theme, bool isFiltered, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -227,7 +243,7 @@ class HistoryScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            isFiltered ? 'No expenses in this category.' : 'No expenses yet!\nTime to spend?',
+            isFiltered ? l10n.noExpensesCategory : l10n.noExpensesYet,
             textAlign: TextAlign.center,
             style: theme.textTheme.titleMedium?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
@@ -248,7 +264,8 @@ class _HistoryTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final dateStr = DateFormat('MMM d, yyyy').format(transaction.date);
+    final lang = ref.watch(settingsProvider.select((s) => s.valueOrNull?.language)) ?? 'en';
+    final dateStr = DateFormat('MMMM d, yyyy', lang).format(transaction.date);
     
     final currencyStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
     final ex = ref.watch(exchangeRateServiceProvider);
