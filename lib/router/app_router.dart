@@ -68,9 +68,15 @@ final GoRouter appRouter = GoRouter(
       ),
     ),
     // Main navigation shell with bottom tab bar
-    StatefulShellRoute.indexedStack(
+    StatefulShellRoute(
       builder: (context, state, navigationShell) {
         return HomePage(navigationShell: navigationShell);
+      },
+      navigatorContainerBuilder: (context, navigationShell, children) {
+        return _AnimatedBranchContainer(
+          currentIndex: navigationShell.currentIndex,
+          children: children,
+        );
       },
       branches: [
         // Tab 0: Dashboard Branch
@@ -133,7 +139,7 @@ final GoRouter appRouter = GoRouter(
             ),
           ],
         ),
-        // Tab 2: Settings Branch
+        // Tab 3: Settings Branch
         StatefulShellBranch(
           navigatorKey: _settingsNavigatorKey,
           routes: [
@@ -164,9 +170,18 @@ CustomTransitionPage<void> _buildPage({
   return CustomTransitionPage<void>(
     key: state.pageKey,
     child: child,
-    transitionDuration: const Duration(milliseconds: 250),
+    transitionDuration: const Duration(milliseconds: 350),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return FadeTransition(opacity: animation, child: child);
+      final curveAnim = CurvedAnimation(parent: animation, curve: Curves.fastOutSlowIn);
+      final scaleAnim = Tween<double>(begin: 0.98, end: 1.0).animate(curveAnim);
+      
+      return FadeTransition(
+        opacity: curveAnim,
+        child: ScaleTransition(
+          scale: scaleAnim,
+          child: child,
+        ),
+      );
     },
   );
 }
@@ -214,6 +229,107 @@ class _ErrorPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A custom container that animates transitions between completely different StatefulShellBranches.
+class _AnimatedBranchContainer extends StatefulWidget {
+  const _AnimatedBranchContainer({
+    required this.currentIndex,
+    required this.children,
+  });
+
+  final int currentIndex;
+  final List<Widget> children;
+
+  @override
+  State<_AnimatedBranchContainer> createState() => _AnimatedBranchContainerState();
+}
+
+class _AnimatedBranchContainerState extends State<_AnimatedBranchContainer> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+  
+  late int _currentIndex;
+  late int _previousIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.currentIndex;
+    _previousIndex = widget.currentIndex;
+    _controller = AnimationController(
+      vsync: this, 
+      duration: const Duration(milliseconds: 350),
+    );
+    final curve = CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn);
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(curve);
+    _scaleAnimation = Tween<double>(begin: 0.98, end: 1.0).animate(curve);
+    _controller.value = 1.0;
+  }
+
+  @override
+  void didUpdateWidget(_AnimatedBranchContainer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentIndex != oldWidget.currentIndex) {
+      _previousIndex = oldWidget.currentIndex;
+      _currentIndex = widget.currentIndex;
+      _controller.forward(from: 0.0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return Stack(
+          children: List.generate(widget.children.length, (index) {
+            final child = widget.children[index];
+            final isCurrent = index == _currentIndex;
+            final isPrevious = index == _previousIndex;
+            
+            // If it's neither current nor previous, keep it offstage to retain state.
+            if (!isCurrent && !isPrevious) {
+               return Offstage(offstage: true, child: child);
+            }
+
+            final isTransitioning = _controller.isAnimating;
+
+            if (isTransitioning) {
+               if (isPrevious) {
+                 // Cross-fade the outgoing page
+                 final fadeOut = Tween<double>(begin: 1.0, end: 0.0).animate(CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn));
+                 final scaleOut = Tween<double>(begin: 1.0, end: 0.98).animate(CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn));
+                 return FadeTransition(
+                   opacity: fadeOut,
+                   child: ScaleTransition(scale: scaleOut, child: child),
+                 );
+               } else if (isCurrent) {
+                 // Cross-fade the incoming page
+                 return FadeTransition(
+                   opacity: _fadeAnimation,
+                   child: ScaleTransition(scale: _scaleAnimation, child: child),
+                 );
+               }
+            }
+
+            // Normal state: show current, hide others inside Offstage.
+            return Offstage(
+              offstage: !isCurrent,
+              child: child,
+            );
+          }),
+        );
+      },
     );
   }
 }

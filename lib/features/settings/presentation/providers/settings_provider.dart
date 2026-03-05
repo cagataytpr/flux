@@ -34,57 +34,49 @@ class SettingsNotifier extends AsyncNotifier<Settings> {
 
   /// Updates the application theme (light, dark, system).
   Future<void> updateThemeMode(String mode) async {
-    state = const AsyncValue.loading();
+    final currentSettings = state.valueOrNull ?? await _fetchOrCreateSettings();
+    final updatedSettings = currentSettings..themeMode = mode;
+    state = AsyncValue.data(updatedSettings);
+    
     final isar = ref.read(isarProvider);
-    state = await AsyncValue.guard(() async {
-      final currentSettings = await _fetchOrCreateSettings();
-      currentSettings.themeMode = mode;
-      await isar.writeTxn(() async {
-        await isar.settings.put(currentSettings);
-      });
-      return currentSettings;
+    await isar.writeTxn(() async {
+      await isar.settings.put(updatedSettings);
     });
   }
 
   /// Updates the application language.
   Future<void> updateLanguage(String lang) async {
-    state = const AsyncValue.loading();
+    final currentSettings = state.valueOrNull ?? await _fetchOrCreateSettings();
+    final updatedSettings = currentSettings..language = lang;
+    state = AsyncValue.data(updatedSettings);
+
     final isar = ref.read(isarProvider);
-    state = await AsyncValue.guard(() async {
-      final currentSettings = await _fetchOrCreateSettings();
-      currentSettings.language = lang;
-      await isar.writeTxn(() async {
-        await isar.settings.put(currentSettings);
-      });
-      return currentSettings;
+    await isar.writeTxn(() async {
+      await isar.settings.put(updatedSettings);
     });
   }
 
   /// Updates the default currency.
   Future<void> updateDefaultCurrency(String currency) async {
-    state = const AsyncValue.loading();
+    final currentSettings = state.valueOrNull ?? await _fetchOrCreateSettings();
+    final updatedSettings = currentSettings..defaultCurrency = currency;
+    state = AsyncValue.data(updatedSettings);
+
     final isar = ref.read(isarProvider);
-    state = await AsyncValue.guard(() async {
-      final currentSettings = await _fetchOrCreateSettings();
-      currentSettings.defaultCurrency = currency;
-      await isar.writeTxn(() async {
-        await isar.settings.put(currentSettings);
-      });
-      return currentSettings;
+    await isar.writeTxn(() async {
+      await isar.settings.put(updatedSettings);
     });
   }
 
   /// Toggles push notifications.
   Future<void> toggleNotifications(bool enabled) async {
-    state = const AsyncValue.loading();
+    final currentSettings = state.valueOrNull ?? await _fetchOrCreateSettings();
+    final updatedSettings = currentSettings..notificationsEnabled = enabled;
+    state = AsyncValue.data(updatedSettings);
+
     final isar = ref.read(isarProvider);
-    state = await AsyncValue.guard(() async {
-      final currentSettings = await _fetchOrCreateSettings();
-      currentSettings.notificationsEnabled = enabled;
-      await isar.writeTxn(() async {
-        await isar.settings.put(currentSettings);
-      });
-      return currentSettings;
+    await isar.writeTxn(() async {
+      await isar.settings.put(updatedSettings);
     });
   }
 }

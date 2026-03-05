@@ -20,10 +20,9 @@ class HomeWidgetMockup extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final totalSpentFromProvider = ref.watch(totalExpensesProvider);
     
-    final settingsStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final settingsStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
     final sym = settingsStr.currencySymbol;
 
     // 2x2 or 4x2 representation
@@ -57,7 +56,7 @@ class HomeWidgetMockup extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF7C4DFF).withOpacity(0.2),
+                  color: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(

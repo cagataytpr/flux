@@ -71,7 +71,7 @@ class StatisticsScreen extends ConsumerWidget {
     final spending = ref.watch(categorySpendingProvider);
     final totalSpent = ref.watch(currentMonthExpensesProvider);
     final budget = ref.watch(userBudgetProvider);
-    final settingsStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final settingsStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
     final sym = settingsStr.currencySymbol;
 
     return Scaffold(

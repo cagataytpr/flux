@@ -4,6 +4,8 @@
 /// the application with Riverpod.
 library;
 
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -62,9 +64,8 @@ class FluxApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settingsAsync = ref.watch(settingsProvider);
-    final themeModeStr = settingsAsync.valueOrNull?.themeMode ?? 'system';
-    final languageStr = settingsAsync.valueOrNull?.language ?? 'tr_TR';
+    final themeModeStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.themeMode ?? 'system'));
+    final languageStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.language ?? 'tr_TR'));
     
     final langParts = languageStr.split('_');
     final locale = langParts.length == 2 
@@ -101,8 +102,8 @@ class FluxApp extends ConsumerWidget {
       themeMode: themeMode,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeAnimationDuration: const Duration(milliseconds: 500),
-      themeAnimationCurve: Curves.easeInOut,
+      themeAnimationDuration: const Duration(milliseconds: 350),
+      themeAnimationCurve: Curves.easeInOutCubic,
       routerConfig: appRouter,
     );
   }

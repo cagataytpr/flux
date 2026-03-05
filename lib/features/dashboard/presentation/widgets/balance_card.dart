@@ -25,7 +25,7 @@ class BalanceCard extends ConsumerWidget {
     final expenses = ref.watch(totalExpensesProvider);
     final isPositive = balance >= 0;
 
-    final settingsStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final settingsStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
     final sym = settingsStr.currencySymbol;
     final ex = ref.watch(exchangeRateServiceProvider);
 

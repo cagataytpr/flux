@@ -188,7 +188,7 @@ class _ReceiptConfirmSheetState extends ConsumerState<ReceiptConfirmSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
-    final settingsStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final settingsStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
     final sym = settingsStr.currencySymbol;
     final dateStr = DateFormat.yMMMd().format(_date);
     final catLabel =

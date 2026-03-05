@@ -115,7 +115,7 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final goalsAsync = ref.watch(goalsProvider);
-    final currencyStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final currencyStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
     final ex = ref.watch(exchangeRateServiceProvider);
     final fmt = NumberFormat('#,##0.00', 'tr_TR');
 
@@ -236,14 +236,14 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  '${fmt.format(ex.convertToSelected(goal.currentAmount, currencyStr))}',
+                                  fmt.format(ex.convertToSelected(goal.currentAmount, currencyStr)),
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: color,
                                   ),
                                 ),
                                 Text(
-                                  '${fmt.format(ex.convertToSelected(goal.targetAmount, currencyStr))}',
+                                  fmt.format(ex.convertToSelected(goal.targetAmount, currencyStr)),
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),

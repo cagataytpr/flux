@@ -43,7 +43,7 @@ class HistoryScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final txnsAsync = ref.watch(transactionsProvider);
     final activeCategory = ref.watch(_historyCategoryFilterProvider);
-    final settingsStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final settingsStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
     final sym = settingsStr.currencySymbol;
 
     return Scaffold(
@@ -116,7 +116,7 @@ class HistoryScreen extends ConsumerWidget {
   Widget _buildHeader(BuildContext context, WidgetRef ref, String sym) {
     final theme = Theme.of(context);
     final totalSpent = ref.watch(_thisMonthTotalProvider);
-    final currencyStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final currencyStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
     final ex = ref.watch(exchangeRateServiceProvider);
     
     final cTotalSpent = ex.convertToSelected(totalSpent, currencyStr);
@@ -250,7 +250,7 @@ class _HistoryTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final dateStr = DateFormat('MMM d, yyyy').format(transaction.date);
     
-    final currencyStr = ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final currencyStr = ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
     final ex = ref.watch(exchangeRateServiceProvider);
     final cAmount = ex.convertToSelected(transaction.amount, currencyStr);
     final fmt = NumberFormat('#,##0.00', 'tr_TR');

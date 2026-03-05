@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/theme/app_theme.dart';
 import '../providers/settings_provider.dart';
 
 /// The Settings Screen for managing user preferences.
@@ -117,7 +118,7 @@ class SettingsScreen extends ConsumerWidget {
                     title: const Text('Push Notifications'),
                     subtitle: const Text('Reminders for bills and budget alerts'),
                     value: settings.notificationsEnabled,
-                    activeColor: theme.colorScheme.primary,
+                    activeTrackColor: theme.colorScheme.primary,
                     onChanged: (val) {
                       ref.read(settingsProvider.notifier).toggleNotifications(val);
                     },

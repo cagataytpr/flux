@@ -137,7 +137,7 @@ class _AddSubscriptionFormState extends State<_AddSubscriptionForm> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final settingsStr = widget.ref.watch(settingsProvider).valueOrNull?.defaultCurrency ?? 'TRY';
+    final settingsStr = widget.ref.watch(settingsProvider.select((s) => s.valueOrNull?.defaultCurrency)) ?? 'TRY';
     final sym = settingsStr.currencySymbol;
 
     return Container(
