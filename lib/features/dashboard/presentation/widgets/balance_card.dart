@@ -34,7 +34,8 @@ class BalanceCard extends ConsumerWidget {
     final cIncome = ex.convertToSelected(income, settingsStr);
     final cExpenses = ex.convertToSelected(expenses, settingsStr);
 
-    final fmt = NumberFormat('#,##0.00', 'tr_TR');
+    final language = ref.watch(settingsProvider.select((s) => s.valueOrNull?.language)) ?? 'tr';
+    final fmt = NumberFormat('#,##0.00', language == 'en' ? 'en_US' : 'tr_TR');
 
     return Container(
       width: double.infinity,
